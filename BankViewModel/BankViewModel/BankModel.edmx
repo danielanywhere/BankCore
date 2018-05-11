@@ -1,0 +1,331 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="bankModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="bnkAccount">
+          <Key>
+            <PropertyRef Name="AccountID" />
+          </Key>
+          <Property Name="AccountID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AccountTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CustomerID" Type="int" Nullable="false" />
+          <Property Name="AccountStatus" Type="varchar" MaxLength="10" />
+          <Property Name="BalanceAvailable" Type="float" Nullable="false" />
+          <Property Name="BalancePending" Type="float" Nullable="false" />
+          <Property Name="DateOpened" Type="smalldatetime" />
+          <Property Name="DateClosed" Type="smalldatetime" />
+          <Property Name="DateLastActivity" Type="smalldatetime" />
+          <Property Name="BranchID" Type="int" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="bnkBranch">
+          <Key>
+            <PropertyRef Name="BranchID" />
+          </Key>
+          <Property Name="BranchID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="BranchTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="32" />
+          <Property Name="Address" Type="varchar" MaxLength="32" />
+          <Property Name="City" Type="varchar" MaxLength="32" />
+          <Property Name="State" Type="varchar" MaxLength="32" />
+          <Property Name="ZipCode" Type="varchar" MaxLength="12" />
+        </EntityType>
+        <EntityType Name="bnkCustomer">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Name="CustomerID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CustomerTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="32" />
+          <Property Name="Address" Type="varchar" MaxLength="32" />
+          <Property Name="City" Type="varchar" MaxLength="32" />
+          <Property Name="State" Type="varchar" MaxLength="32" />
+          <Property Name="ZipCode" Type="varchar" MaxLength="12" />
+          <Property Name="TIN" Type="varchar" MaxLength="16" />
+        </EntityType>
+        <EntityType Name="bnkEmployee">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="EmployeeTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="FirstName" Type="varchar" MaxLength="32" />
+          <Property Name="LastName" Type="varchar" MaxLength="32" />
+          <Property Name="DateStarted" Type="smalldatetime" />
+          <Property Name="DateEnded" Type="smalldatetime" />
+          <Property Name="Title" Type="varchar" MaxLength="32" />
+          <Property Name="TIN" Type="varchar" MaxLength="16" />
+        </EntityType>
+        <EntityType Name="bnkServiceChargeManager">
+          <Key>
+            <PropertyRef Name="ServiceChargeManagerID" />
+          </Key>
+          <Property Name="ServiceChargeManagerID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ServiceChargeManagerTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AccountID" Type="int" Nullable="false" />
+          <Property Name="ServiceChargeExpression" Type="varchar" MaxLength="255" />
+        </EntityType>
+        <EntityType Name="bnkTransaction">
+          <Key>
+            <PropertyRef Name="TransactionID" />
+          </Key>
+          <Property Name="TransactionID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TransactionTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AccountID" Type="int" Nullable="false" />
+          <Property Name="TransactionTypeEnum" Type="int" Nullable="false" />
+          <Property Name="Amount" Type="float" Nullable="false" />
+          <Property Name="DateTransaction" Type="smalldatetime" />
+          <Property Name="DateFundsAvailable" Type="smalldatetime" />
+          <Property Name="RemoteInstitution" Type="varchar" MaxLength="32" />
+          <Property Name="RemoteAccount" Type="varchar" MaxLength="32" />
+        </EntityType>
+        <EntityType Name="bnkTransactionType">
+          <Key>
+            <PropertyRef Name="TransactionTypeID" />
+          </Key>
+          <Property Name="TransactionTypeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TransactionTypeTicket" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="TransactionTypeEnum" Type="int" Nullable="false" />
+          <Property Name="TransactionTypeSortIndex" Type="int" Nullable="false" />
+          <Property Name="TransactionTypeName" Type="varchar" MaxLength="32" />
+          <Property Name="TransactionTypeDescription" Type="varchar" MaxLength="255" />
+        </EntityType>
+        <EntityContainer Name="bankModelStoreContainer">
+          <EntitySet Name="bnkAccount" EntityType="Self.bnkAccount" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="bnkBranch" EntityType="Self.bnkBranch" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="bnkCustomer" EntityType="Self.bnkCustomer" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="bnkEmployee" EntityType="Self.bnkEmployee" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="bnkServiceChargeManager" EntityType="Self.bnkServiceChargeManager" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="bnkTransaction" EntityType="Self.bnkTransaction" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="bnkTransactionType" EntityType="Self.bnkTransactionType" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="bankModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="bnkAccount">
+          <Key>
+            <PropertyRef Name="AccountID" />
+          </Key>
+          <Property Name="AccountID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AccountTicket" Type="Guid" Nullable="false" />
+          <Property Name="CustomerID" Type="Int32" Nullable="false" />
+          <Property Name="AccountStatus" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="BalanceAvailable" Type="Double" Nullable="false" />
+          <Property Name="BalancePending" Type="Double" Nullable="false" />
+          <Property Name="DateOpened" Type="DateTime" Precision="0" />
+          <Property Name="DateClosed" Type="DateTime" Precision="0" />
+          <Property Name="DateLastActivity" Type="DateTime" Precision="0" />
+          <Property Name="BranchID" Type="Int32" Nullable="false" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="bnkBranch">
+          <Key>
+            <PropertyRef Name="BranchID" />
+          </Key>
+          <Property Name="BranchID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="BranchTicket" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="Address" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="City" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="State" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="ZipCode" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="bnkCustomer">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Name="CustomerID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerTicket" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="Address" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="City" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="State" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="ZipCode" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+          <Property Name="TIN" Type="String" MaxLength="16" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="bnkEmployee">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="EmployeeTicket" Type="Guid" Nullable="false" />
+          <Property Name="FirstName" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="LastName" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="DateStarted" Type="DateTime" Precision="0" />
+          <Property Name="DateEnded" Type="DateTime" Precision="0" />
+          <Property Name="Title" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TIN" Type="String" MaxLength="16" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="bnkServiceChargeManager">
+          <Key>
+            <PropertyRef Name="ServiceChargeManagerID" />
+          </Key>
+          <Property Name="ServiceChargeManagerID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ServiceChargeManagerTicket" Type="Guid" Nullable="false" />
+          <Property Name="AccountID" Type="Int32" Nullable="false" />
+          <Property Name="ServiceChargeExpression" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="bnkTransaction">
+          <Key>
+            <PropertyRef Name="TransactionID" />
+          </Key>
+          <Property Name="TransactionID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TransactionTicket" Type="Guid" Nullable="false" />
+          <Property Name="AccountID" Type="Int32" Nullable="false" />
+          <Property Name="TransactionTypeEnum" Type="Int32" Nullable="false" />
+          <Property Name="Amount" Type="Double" Nullable="false" />
+          <Property Name="DateTransaction" Type="DateTime" Precision="0" />
+          <Property Name="DateFundsAvailable" Type="DateTime" Precision="0" />
+          <Property Name="RemoteInstitution" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="RemoteAccount" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="bnkTransactionType">
+          <Key>
+            <PropertyRef Name="TransactionTypeID" />
+          </Key>
+          <Property Name="TransactionTypeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TransactionTypeTicket" Type="Guid" Nullable="false" />
+          <Property Name="TransactionTypeEnum" Type="Int32" Nullable="false" />
+          <Property Name="TransactionTypeSortIndex" Type="Int32" Nullable="false" />
+          <Property Name="TransactionTypeName" Type="String" MaxLength="32" FixedLength="false" Unicode="false" />
+          <Property Name="TransactionTypeDescription" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityContainer Name="bankEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="bnkAccounts" EntityType="Self.bnkAccount" />
+          <EntitySet Name="bnkBranches" EntityType="Self.bnkBranch" />
+          <EntitySet Name="bnkCustomers" EntityType="Self.bnkCustomer" />
+          <EntitySet Name="bnkEmployees" EntityType="Self.bnkEmployee" />
+          <EntitySet Name="bnkServiceChargeManagers" EntityType="Self.bnkServiceChargeManager" />
+          <EntitySet Name="bnkTransactions" EntityType="Self.bnkTransaction" />
+          <EntitySet Name="bnkTransactionTypes" EntityType="Self.bnkTransactionType" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="bankModelStoreContainer" CdmEntityContainer="bankEntities">
+          <EntitySetMapping Name="bnkAccounts">
+            <EntityTypeMapping TypeName="bankModel.bnkAccount">
+              <MappingFragment StoreEntitySet="bnkAccount">
+                <ScalarProperty Name="AccountID" ColumnName="AccountID" />
+                <ScalarProperty Name="AccountTicket" ColumnName="AccountTicket" />
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+                <ScalarProperty Name="AccountStatus" ColumnName="AccountStatus" />
+                <ScalarProperty Name="BalanceAvailable" ColumnName="BalanceAvailable" />
+                <ScalarProperty Name="BalancePending" ColumnName="BalancePending" />
+                <ScalarProperty Name="DateOpened" ColumnName="DateOpened" />
+                <ScalarProperty Name="DateClosed" ColumnName="DateClosed" />
+                <ScalarProperty Name="DateLastActivity" ColumnName="DateLastActivity" />
+                <ScalarProperty Name="BranchID" ColumnName="BranchID" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="bnkBranches">
+            <EntityTypeMapping TypeName="bankModel.bnkBranch">
+              <MappingFragment StoreEntitySet="bnkBranch">
+                <ScalarProperty Name="BranchID" ColumnName="BranchID" />
+                <ScalarProperty Name="BranchTicket" ColumnName="BranchTicket" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="bnkCustomers">
+            <EntityTypeMapping TypeName="bankModel.bnkCustomer">
+              <MappingFragment StoreEntitySet="bnkCustomer">
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+                <ScalarProperty Name="CustomerTicket" ColumnName="CustomerTicket" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="State" ColumnName="State" />
+                <ScalarProperty Name="ZipCode" ColumnName="ZipCode" />
+                <ScalarProperty Name="TIN" ColumnName="TIN" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="bnkEmployees">
+            <EntityTypeMapping TypeName="bankModel.bnkEmployee">
+              <MappingFragment StoreEntitySet="bnkEmployee">
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="EmployeeTicket" ColumnName="EmployeeTicket" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="DateStarted" ColumnName="DateStarted" />
+                <ScalarProperty Name="DateEnded" ColumnName="DateEnded" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="TIN" ColumnName="TIN" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="bnkServiceChargeManagers">
+            <EntityTypeMapping TypeName="bankModel.bnkServiceChargeManager">
+              <MappingFragment StoreEntitySet="bnkServiceChargeManager">
+                <ScalarProperty Name="ServiceChargeManagerID" ColumnName="ServiceChargeManagerID" />
+                <ScalarProperty Name="ServiceChargeManagerTicket" ColumnName="ServiceChargeManagerTicket" />
+                <ScalarProperty Name="AccountID" ColumnName="AccountID" />
+                <ScalarProperty Name="ServiceChargeExpression" ColumnName="ServiceChargeExpression" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="bnkTransactions">
+            <EntityTypeMapping TypeName="bankModel.bnkTransaction">
+              <MappingFragment StoreEntitySet="bnkTransaction">
+                <ScalarProperty Name="TransactionID" ColumnName="TransactionID" />
+                <ScalarProperty Name="TransactionTicket" ColumnName="TransactionTicket" />
+                <ScalarProperty Name="AccountID" ColumnName="AccountID" />
+                <ScalarProperty Name="TransactionTypeEnum" ColumnName="TransactionTypeEnum" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="DateTransaction" ColumnName="DateTransaction" />
+                <ScalarProperty Name="DateFundsAvailable" ColumnName="DateFundsAvailable" />
+                <ScalarProperty Name="RemoteInstitution" ColumnName="RemoteInstitution" />
+                <ScalarProperty Name="RemoteAccount" ColumnName="RemoteAccount" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="bnkTransactionTypes">
+            <EntityTypeMapping TypeName="bankModel.bnkTransactionType">
+              <MappingFragment StoreEntitySet="bnkTransactionType">
+                <ScalarProperty Name="TransactionTypeID" ColumnName="TransactionTypeID" />
+                <ScalarProperty Name="TransactionTypeTicket" ColumnName="TransactionTypeTicket" />
+                <ScalarProperty Name="TransactionTypeEnum" ColumnName="TransactionTypeEnum" />
+                <ScalarProperty Name="TransactionTypeSortIndex" ColumnName="TransactionTypeSortIndex" />
+                <ScalarProperty Name="TransactionTypeName" ColumnName="TransactionTypeName" />
+                <ScalarProperty Name="TransactionTypeDescription" ColumnName="TransactionTypeDescription" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

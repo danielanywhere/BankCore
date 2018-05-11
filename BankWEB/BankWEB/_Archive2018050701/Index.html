@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <title>BankCore featuring Kendo UI MVVM JQuery, ASP.NET and REST</title>
+ <!-- Base formatting. -->
+ <link href="Default.css" rel="stylesheet" />
+ <!-- Common Kendo UI CSS for web widgets and widgets for data visualization. -->
+ <link href="styles/kendo.common.min.css" rel="stylesheet" />
+ <!-- The following doesn't set a theme. -->
+ <!-- Default Kendo UI theme CSS for web widgets and widgets for data visualization. -->
+ <!-- <link href="styles/kendo.default.min.css" rel="stylesheet" /> -->
+ <!-- Set a theme -->
+ <link href="styles/kendo.blueopal.min.css" rel="stylesheet" />
+ <!-- jQuery Javascript from VS2013 -->
+ <script src="Scripts/jquery-1.10.2.min.js"></script>
+ <!-- Kendo UI Combined. -->
+ <script src="js/kendo.all.min.js"></script>
+</head>
+<body>
+ <div id="pnlMain">
+  <div id="tctlMain">
+   <div class="demo-section k-content">
+    <div id="tabstrip">
+     <ul>
+      <li class="k-state-active">Customers</li>
+      <li>Accounts</li>
+      <li>Branches</li>
+      <li>Employees</li>
+     </ul>
+     <div>
+      <!-- Customers -->
+      <span class="tpanel">Select a customer to edit or view.</span>
+      <div class="tcontent">
+       <div id="dgCustomers"></div>
+      </div>
+     </div>
+     <div>
+      <!-- Accounts -->
+      <span class="tpanel">&nbsp;</span>
+      <div class="tcontent">
+       <h2>&nbsp;</h2>
+      </div>
+     </div>
+     <div>
+      <!-- Branches -->
+      <span class="tpanel">&nbsp;</span>
+      <div class="tcontent">
+       <h2>&nbsp;</h2>
+      </div>
+     </div>
+     <div>
+      <!-- Employees -->
+      <span class="tpanel">&nbsp;</span>
+      <div class="tcontent">
+       <h2>&nbsp;</h2>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div id="pnlCustomer" class="hidden">
+  <div class="backButton"><a onclick="activateMain();"><img src="Images/BackArrow.png" /> Back to main form</a></div>
+  <div class="formBody">
+   <h2>Customer</h2>
+   <div id="frmCustomer">
+    <div class="demo-section k-content">
+     <ul class="fieldlist">
+      <li>
+       <label for="customerTicket">Ticket:</label>
+       <input id="customerTicket" type="text" class="k-textbox" style="width:100%" data-bind="value: packageSource.data()[0].CustomerTicket" />
+       <label for="customerName">Name:</label>
+       <input id="customerName" type="text" class="k-textbox" style="width:100%" data-bind="value: packageSource.data()[0].Name, events:{change:textChanged}" />
+       <label for="customerAddress">Address:</label>
+       <input id="customerAddress" type="text" class="k-textbox" style="width:100%" data-bind="value: packageSource.data()[0].Address, events:{change:textChanged}" />
+       <label for="customerCity">City:</label>
+       <input id="customerCity" type="text" class="k-textbox" style="width:100%" data-bind="value: packageSource.data()[0].City, events:{change:textChanged}" />
+       <label for="customerState">State:</label>
+       <input id="customerState" type="text" class="k-textbox" style="width:100%" data-bind="value: packageSource.data()[0].State, events:{change:textChanged}" />
+       <label for="customerZipCode">Zip Code:</label>
+       <input id="customerZipCode" type="text" class="k-textbox" style="width:100%" data-bind="value: packageSource.data()[0].ZipCode, events:{change:textChanged}" />
+       <button data-role="button" data-icon="edit" data-bind="visible:isSaveVisible, enabled:isSaveEnabled, events:{click:saveClicked}" style="width:180px">Save</button>
+      </li>
+     </ul>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div id="pnlAccount" class="hidden">
+
+ </div>
+ <div id="pnlBranch" class="hidden">
+
+ </div>
+ <div id="pnlEmployee" class="hidden">
+
+ </div>
+
+
+  <style>
+   .tpanel {
+    display: block;
+    font-size: 10pt;
+    color: #909090;
+    padding: 0;
+    margin: 0;
+   }
+   .tcontent {
+   }
+  </style>
+  <script>
+   function activateMain()
+   {
+    if(!$("#pnlCustomer").hasClass("hidden"))
+    {
+     $("#pnlCustomer").addClass("hidden");
+    }
+    if(!$("#pnlAccount").hasClass("hidden"))
+    {
+     $("#pnlAccount").addClass("hidden");
+    }
+    if(!$("#pnlBranch").hasClass("hidden"))
+    {
+     $("#pnlBranch").addClass("hidden");
+    }
+    if(!$("#pnlEmployee").hasClass("hidden"))
+    {
+     $("#pnlEmployee").addClass("hidden");
+    }
+    $("#pnlMain").removeClass("hidden");
+   }
+   $(document).ready(function()
+   {
+    $("#tabstrip").kendoTabStrip({
+     animation: {
+      open: {
+       effects: "fadeIn"
+      }
+     }
+    });
+    $("#dgCustomers").kendoGrid({
+     dataSource: {
+      type: "json",
+      transport: {
+       read: "api/Customers"
+      },
+      pageSize: 20
+     },
+     height: 550,
+     groupable: true,
+     sortable: true,
+     selectable: "row",
+     pageable: {
+      refresh: true,
+      pageSizes: true,
+      buttonCount: 5
+     },
+     columns: [{
+      template: '<div class="record-icon"' +
+      'style="background-image: url(Images/Customer.png);"></div>' +
+      '<div class="record-name">#: Name #</div>',
+      field: "Name",
+      title: "Name",
+      alttemplate: '<a href="Customer.html?id=#=CustomerID#" ' +
+       ' target="blank">#=Name#</a>',
+      width: 240
+     }, {
+      field: "Address",
+      title: "Address"
+     }, {
+      field: "City",
+      title: "City"
+     }, {
+      field: "ZipCode",
+      title: "Zip Code",
+      width: 150
+     }],
+     change: function(e)
+     {
+      var selectedRow = this.select();
+      if(selectedRow)
+      {
+       var dataItem = this.dataItem(selectedRow);
+       if(dataItem)
+       {
+        console.log("Switching view from Main to Customer...");
+        $("#pnlMain").addClass("hidden");
+        $("#pnlCustomer").removeClass("hidden");
+       }
+      }
+     }
+    });
+   });
+  </script>
+
+</body>
+</html>

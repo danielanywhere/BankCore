@@ -1,0 +1,89 @@
+﻿<Window x:Class="BankWPF.AccountWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+				xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				xmlns:BankViewModel="clr-namespace:BankViewModel;assembly=BankViewModel"
+				mc:Ignorable="d"
+				Loaded="Window_Loaded"
+        Title="Account" Height="300" Width="300">
+	<Window.Resources>
+		<BitmapImage x:Key="icoTransaction" UriSource="Resources/Transaction.png" />
+		<BitmapImage x:Key="icoServiceCharge" UriSource="Resources/ServiceCharge.png" />
+		<CollectionViewSource x:Key="branchItemViewSource" d:DesignSource="{d:DesignInstance {x:Type BankViewModel:bnkBranch}, CreateList=True}" />
+		<CollectionViewSource x:Key="employeeItemViewSource" d:DesignSource="{d:DesignInstance {x:Type BankViewModel:bnkEmployee}, CreateList=True}" />
+		<CollectionViewSource x:Key="transactionItemViewSource" d:DesignSource="{d:DesignInstance {x:Type BankViewModel:bnkTransaction}, CreateList=True}" />
+		<CollectionViewSource x:Key="chargeItemViewSource" d:DesignSource="{d:DesignInstance {x:Type BankViewModel:ServiceChargeCollection}, CreateList=True}" />
+	</Window.Resources>
+	<Grid>
+		<DockPanel>
+			<Menu DockPanel.Dock="Top">
+				<MenuItem Header="_File" />
+			</Menu>
+			<ToolBar x:Name="tbarAccount" DockPanel.Dock="Top">
+				<Button Command="Save" Content="Save" />
+			</ToolBar>
+			<TabControl x:Name="tctlAccount" DockPanel.Dock="Top">
+				<TabItem x:Name="tabDetails" Header="_Details">
+					<Grid x:Name="tabDetailsGrid" Background="#FFE5E5E5" Margin="10" DataContext="{StaticResource branchItemViewSource}">
+						<Label x:Name="lblAccountID" Content="Account ID:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" />
+						<TextBox x:Name="txtAccountID" Text="{Binding AccountID}" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="90,13,10,0" Height="23" />
+						<Label x:Name="lblBranch" Content="Branch:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,38,0,0" />
+						<ComboBox x:Name="cmboBranch" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="90,41,10,0" Height="23"
+							ItemsSource="{Binding Source={StaticResource branchItemViewSource}}" DisplayMemberPath="Name" SelectedValuePath="BranchID" SelectedValue="{Binding BranchID}" />
+						<Label x:Name="lblEmployee" Content="Employee:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,66,0,0" />
+						<ComboBox x:Name="cmboEmployee" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="90,69,10,0" Height="23"
+							ItemsSource="{Binding Source={StaticResource employeeItemViewSource}}" SelectedValuePath="EmployeeID" SelectedValue="{Binding EmployeeID}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock>
+										<TextBlock.Text>
+											<MultiBinding StringFormat="{}{0} {1}">
+												<Binding Path="FirstName" />
+												<Binding Path="LastName" />
+											</MultiBinding>
+										</TextBlock.Text>
+									</TextBlock>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</Grid>
+				</TabItem>
+				<TabItem x:Name="tabTransactions" Header="T_ransactions" GotFocus="TabItem_GotFocus">
+					<Grid Background="#FFE5E5E5" Margin="10" DataContext="{StaticResource transactionItemViewSource}">
+						<DataGrid Name="dgTransactions" ItemsSource="{Binding}" AutoGenerateColumns="False" CanUserAddRows="False">
+							<DataGrid.Columns>
+								<DataGridTemplateColumn IsReadOnly="True">
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate>
+											<Image Source="{StaticResource icoTransaction}" />
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+								</DataGridTemplateColumn>
+								<DataGridTextColumn Header="Date" Binding="{Binding DateTransaction, StringFormat='{}{0:yyyyMMdd}'}" />
+								<DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat='{}{0:c}'}" />
+							</DataGrid.Columns>
+						</DataGrid>
+					</Grid>
+				</TabItem>
+				<TabItem x:Name="tabServiceCharges" Header="Service C_harges" GotFocus="TabItem_GotFocus">
+					<Grid Background="#FFE5E5E5" Margin="10" DataContext="{StaticResource chargeItemViewSource}">
+						<DataGrid Name="dgServiceCharges" ItemsSource="{Binding}" AutoGenerateColumns="False" IsReadOnly="True">
+							<DataGrid.Columns>
+								<DataGridTemplateColumn>
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate>
+											<Image Source="{StaticResource icoServiceCharge}" />
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+								</DataGridTemplateColumn>
+								<DataGridTextColumn Header="Source" Binding="{Binding Source}" />
+								<DataGridTextColumn Header="Value" Binding="{Binding Value}" />
+							</DataGrid.Columns>
+						</DataGrid>
+					</Grid>
+				</TabItem>
+			</TabControl>
+		</DockPanel>
+	</Grid>
+</Window>
