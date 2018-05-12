@@ -1,4 +1,6 @@
-# Bank Core by danielanywhere
+# Bank Core
+<sup>by danielanywhere</sup>
+
 A Sample Bank Core Work in Progress Illustrating Multiple Techniques
 
 

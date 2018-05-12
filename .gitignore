@@ -2,6 +2,8 @@ App.Config
 Web.config
 Web.Debug.config
 Web.Release.config
+_Archive*
+~*
 /build/
 *.suo
 *.user
