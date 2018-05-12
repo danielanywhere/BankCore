@@ -1,7 +1,7 @@
-[Aa]pp.[Cc]onfig
-[Ww]eb.[Cc]onfig
-[Ww]eb.[Dd]ebug.[Cc]onfig
-[Ww]eb.[Rr]elease.[Cc]onfig
+App.Config
+Web.Config
+Web.Debug.Config
+Web.Release.Config
 _Archive*
 ~*
 /build/
@@ -9,10 +9,10 @@ _Archive*
 *.user
 _ReSharper.*/
 *.sdf
-[Bb]in/
-[Oo]bj/
-[Dd]ebug/
-[Rr]elease/
+bin/
+obj/
+Debug/
+Release/
 *.opensdf
 *.tlog
 *.log
