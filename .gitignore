@@ -1,3 +1,7 @@
+App.Config
+Web.config
+Web.Debug.config
+Web.Release.config
 /build/
 *.suo
 *.user
