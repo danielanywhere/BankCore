@@ -22,3 +22,4 @@ Version.cs
 Version.h
 Version.cpp
 *.sav
+*.[Pp]ub[Xx][Mm][Ll]
