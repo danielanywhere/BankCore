@@ -1,7 +1,7 @@
-App.Config
-Web.config
-Web.Debug.config
-Web.Release.config
+[Aa]pp.[Cc]onfig
+[Ww]eb.[Cc]onfig
+[Ww]eb.[Dd]ebug.[Cc]onfig
+[Ww]eb.[Rr]elease.[Cc]onfig
 _Archive*
 ~*
 /build/
@@ -9,10 +9,10 @@ _Archive*
 *.user
 _ReSharper.*/
 *.sdf
-bin/
-obj/
-Debug/
-Release/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
 *.opensdf
 *.tlog
 *.log
