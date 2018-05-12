@@ -22,3 +22,6 @@ Version.cs
 Version.h
 Version.cpp
 *.sav
+BankViewModel/BankViewModel/App.Config
+BankWEB/BankWEB/Web.config
+BankWPF/BankWPF/App.config
