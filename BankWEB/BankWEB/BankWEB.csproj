@@ -2248,6 +2248,7 @@
     <Content Include="js\messages\kendo.messages.zh-CN.min.js.map" />
     <Content Include="js\messages\kendo.messages.zh-HK.min.js.map" />
     <Content Include="js\messages\kendo.messages.zh-TW.min.js.map" />
+    <None Include="Properties\PublishProfiles\BankWEB on Azure.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -2716,7 +2717,6 @@
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="packages.config" />
-    <None Include="Project_Readme.html" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

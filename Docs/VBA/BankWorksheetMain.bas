@@ -350,56 +350,6 @@ Dim t2 As String      'Value2 Lowercase.
 
 End Function
 
-Public Sub CopySelectFormFieldsToClipboard()
-'On the active form fields sheet, copy the rows of selected cells to the clipboard.
-Dim cn As Integer       'Name/Value Starting Column.
-Dim lp As Integer       'List Position.
-Dim lr As String        'Last Reference.
-Dim ls As String        'Line String.
-Dim nm As String        'Current Element Name.
-Dim ns As String        'Name/Value String.
-Dim rg As Range         'Selection Range.
-Dim rr As Range         'Current Row.
-Dim sh As Worksheet     'Active Sheet.
-Dim vc As String        'Current Value.
-Dim vn As String        'Next Value.
-Dim vp As String        'Previous Value.
-
-  cn = 4
-  Set sh = ActiveSheet
-  If Not Selection Is Nothing Then
-    Set rg = Selection
-    ls = ""
-    For Each rr In rg.Rows
-      lp = rr.Row
-      vc = ValueCell("A", lp)
-      nm = ValueCell("B", lp)
-      If Len(vc) > 0 And Len(nm) > 0 Then
-        'Row contains information.
-        vn = ValueNext("A", lp)
-        vp = ValuePrev("A", lp)
-        ls = ls & "<" & ValueCell("B", lp)
-        ns = NameValues(cn, lp)
-        If Len(ns) > 0 Then
-          ls = ls & " " & ns
-        End If
-        If vn = vc & "/" & nm Then
-          'The next item is enclosed within this.
-          ls = ls & ">" & vbCrLf
-        Else
-          'This item is self-enclosed.
-          ls = ls & " />" & vbCrLf
-        End If
-      End If
-    Next rr
-  End If
-  If Len(ls) > 0 Then
-    ClipBoard_SetData ls
-    MsgBox "XAML copied to clipboard...", vbOKOnly, _
-      "Copy Select Form Fields to Clipboard"
-  End If
-End Sub
-
 Public Sub CreateObjectCollectionCode()
 'Use the TemplateObjectCollection sheet to create code for the Component on
 ' the selected sheet.
@@ -418,6 +368,171 @@ Public Sub CreateSinglePageAppHTML()
 'Use the TemplateHTMLSinglePageApp sheet to create HTML for all Component sheets.
 
   HtmlFromTemplate Sheets("TemplateHTMLSinglePageApp")
+
+End Sub
+
+Public Sub CreateSQLTableScript()
+'Render the scripting of the SQL database table, and send the file to the
+' SQL folder.
+Dim bc As Boolean         'Flag - Continue.
+Dim bid As Boolean        'Flag - ID Column.
+Dim bMax As Boolean       'Max Columns require the use of TEXTIMAGE_ON
+Dim cName As String       'Column Name.
+Dim cProps As ColumnProperties
+Dim cType As String       'Column Type.
+Dim cLen As String        'Column Explicit Length.
+Dim cDef As String        'Default Value.
+Dim cNull As Boolean      'Value indicating whether a null is possible.
+Dim cDesc As String       'Column Description.
+Dim dbn As String         'Database Name.
+Dim dCreate As String     'Create Constraints.
+Dim dDrop As String       'Drop Constraints.
+Dim fc As String          'File Content.
+Dim fln As String         'Folder Name.
+Dim fso As Object         'File System Object.
+Dim ident As String       'Identity specification.
+Dim iName As String       'Item Name.
+Dim lp As Integer         'List Position.
+Dim pk As String          'Primary Key String.
+Dim sh As Worksheet       'Current Sheet.
+Dim tc As String          'Table Content.
+Dim tName As String       'Table Name.
+Dim ts As Object          'Text Stream.
+
+  bc = False
+  tName = Application.ActiveSheet.Name
+  If Len(tName) > 9 Then
+    If LCase(Left(tName, 9)) = "component" Then
+      bc = True
+    End If
+  End If
+  If bc = False Then
+    MsgBox _
+      "Please select a sheet whose name is prefixed with 'Component'." & _
+      vbCrLf & _
+      "For example, 'ComponentCustomer', etc.", vbOKOnly, _
+      "Create SQL Table Script"
+  End If
+
+  If bc = True Then
+    Set cProps = New ColumnProperties
+    iName = Replace(tName, "Component", "")
+    tName = "bnk" & iName
+  
+    fln = GetConfigValue("TableFolderName")
+    dbn = GetConfigValue("DatabaseName")
+    'Make sure folder name has trailing slash.
+    If Len(fln) > 0 Then
+      If Right(fln, 1) <> "\" Then
+        fln = fln & "\"
+      End If
+    End If
+    fln = fln & "dbo." & tName & ".sql"
+  
+    Set sh = Application.ActiveSheet
+  
+    pk = ""
+    lp = 2
+    Do While Len(ValueCell(cProps.ColumnName, lp)) > 0
+      bid = False
+      If LCase(ValueCell(cProps.ColumnDataType, lp)) = "object" And _
+        LCase(ValueCell(cProps.ColumnSource, lp)) = "item" Then
+        'The identity specification is found on the default value of the
+        ' abstract item.
+        ident = "IDENTITY(" & ValueCell(cProps.ColumnDefaultValue, lp) & ")"
+      ElseIf ValueCell(cProps.ColumnIsData, lp) = "1" Then
+        'Only script to table if this is a data column.
+        cName = ValueCell(cProps.ColumnName, lp)
+        cType = GetSqlType(ValueCell(cProps.ColumnDataType, lp))
+        cLen = ValueCell(cProps.ColumnLength, lp)
+        cDef = GetSqlDefault(ValueCell(cProps.ColumnDefaultValue, lp))
+        If LCase(cName) = LCase(iName) & "id" Then
+          'This is the ID column. Use the prescribed identity.
+          cDef = ident
+          bid = True
+        ElseIf LCase(cName) = LCase(iName) & "ticket" Then
+          'This is the global identity column.
+          cDef = "ROWGUIDCOL"
+        End If
+        cNull = GetSqlNullable(ValueCell(cProps.ColumnDefaultValue, lp))
+        cDesc = ValueCell(cProps.ColumnDescription, lp)
+        If Len(tc) > 0 Then
+          tc = tc & ", " & vbCrLf
+        End If
+        If (InStr(LCase(cDef), "identity") > 0 Or _
+          InStr(LCase(cDef), "newid") > 0 Or _
+          InStr(LCase(cDef), "rowguidcol") > 0) Then
+          tc = tc & "[" & cName & "] [" & cType & "] " & cDef & _
+            IIf(Len(cDef) > 0, " ", "") & "NOT NULL"
+          If InStr(LCase(cDef), "identity") > 0 Then
+            pk = cName
+          End If
+        Else
+          tc = tc & "[" & cName & "] [" & cType & "] " & _
+            IIf(Len(cLen) > 0, "(" & cLen & ") ", "") & _
+            IIf(cNull = False, "NOT ", "") & "NULL"
+        End If
+        If Len(cDef) > 0 And bid = False Then
+          'Default value is defined.
+          dDrop = dDrop & _
+            "IF OBJECT_ID('dbo.[DF_" & tName & "_" & cName & "]', 'D') " & _
+            "IS NOT NULL" & vbCrLf & _
+            "  ALTER TABLE [dbo].[" & tName & "] " & _
+            "DROP CONSTRAINT [DF_" & tName & "_" & cName & "]" & vbCrLf & _
+            "GO" & vbCrLf
+          dCreate = dCreate & "ALTER TABLE [dbo].[" & tName & "] " & _
+            "ADD CONSTRAINT [DF_" & tName & "_" & cName & "] " & _
+            "DEFAULT (" & GetSqlDefault(cDef) & ") FOR " & _
+            "[" & cName & "]" & vbCrLf & _
+            "GO" & vbCrLf
+        End If
+      End If
+      lp = lp + 1
+    Loop
+    If Len(tc) > 0 Then
+      If Len(pk) > 0 Then
+        'If a Primary Key has been included by implication, then set it in the
+        ' script.
+        tc = tc & "," & vbCrLf & _
+          "primary key (" & pk & ")"
+      End If
+      fc = "USE [" & dbn & "]" & vbCrLf
+      fc = fc & "GO" & vbCrLf
+      fc = fc & dDrop
+      fc = fc & _
+        "/****** Object:  Table [dbo].[" & tName & "] - Script Date: " & _
+        Format(Now(), "MM/DD/YYYY HH:MM") & " ******/" & vbCrLf
+      fc = fc & _
+        "IF OBJECT_ID('dbo.[" & tName & "]', 'U') IS NOT NULL" & vbCrLf & _
+        "  DROP TABLE [dbo].[" & tName & "]" & vbCrLf & _
+        "GO" & vbCrLf
+      fc = fc & "SET ANSI_NULLS ON" & vbCrLf & _
+        "GO" & vbCrLf & _
+        "SET QUOTED_IDENTIFIER ON" & vbCrLf & _
+        "GO" & vbCrLf & _
+        "SET ANSI_PADDING ON" & vbCrLf & _
+        "GO" & vbCrLf
+      fc = fc & "CREATE TABLE [dbo].[" & tName & "](" & vbCrLf
+      fc = fc & tc & vbCrLf
+      fc = fc & ") ON [PRIMARY]"
+      If InStr(LCase(tc), "(max)") > 0 Then
+        fc = fc & " TEXTIMAGE_ON [PRIMARY]"
+      End If
+      fc = fc & vbCrLf & _
+        "GO" & vbCrLf
+      fc = fc & "SET ANSI_PADDING OFF" & vbCrLf & _
+        "GO" & vbCrLf
+      fc = fc & dCreate & vbCrLf
+      Set fso = CreateObject("Scripting.FileSystemObject")
+      Set ts = fso.CreateTextFile(fln, True, False)
+      ts.Write fc
+      ts.Close
+      Set ts = Nothing
+      Set fso = Nothing
+      MsgBox "SQL Table Script Saved to " & fln, vbOKOnly, _
+        "Create SQL Table Script"
+    End If
+  End If
 
 End Sub
 
@@ -464,7 +579,7 @@ Dim rv As String    'Return Value.
   GetBorder = rv
 End Function
 
-Private Function GetConfigValue(ConfigName As String) As String
+Public Function GetConfigValue(ConfigName As String) As String
 'Get the first value found for the specified name in the Configuration sheet.
 Dim lp As Integer   'List Position.
 Dim rv As String    'Return Value.
@@ -760,6 +875,79 @@ End Function
 Private Function GetTabs(Count As Integer) As String
 'Return the specified number of tabs.
   GetTabs = Repeat(Chr(9), Count)
+End Function
+
+Private Function GetSqlDefault(DefaultValue As String) As String
+'Return the default SQL value corresponding to the default object value.
+Dim lv As String      'Lower.
+Dim rv As String      'Return Value.
+
+  lv = LCase(DefaultValue)
+  Select Case lv
+    Case "guid.empty":
+      rv = "NULL"
+    Case "datetime.minvalue":
+      rv = "NULL"
+    Case "rowguidcol":
+      rv = "newid()"
+  End Select
+
+  If IsNumeric(lv) Then
+    rv = "(" & DefaultValue & ")"
+  ElseIf Len(lv) = 0 Then
+    rv = "NULL"
+  ElseIf Left(lv, 1) = " " Or InStr(lv, """") > 0 Then
+    rv = Trim(Replace(lv, """", "'"))
+  ElseIf Len(rv) = 0 Then
+    rv = lv
+  End If
+  GetSqlDefault = rv
+
+End Function
+
+Private Function GetSqlNullable(DefaultValue As String) As Boolean
+'Return a value indicating whether the specified value can be null.
+Dim rv As Boolean     'Return Value.
+
+  rv = False
+  If Len(DefaultValue) = 0 Then
+    rv = True
+  ElseIf LCase(DefaultValue) = "null" Then
+    rv = True
+  End If
+  
+  GetSqlNullable = rv
+
+End Function
+Private Function GetSqlType(DataTypeName As String) As String
+'Return the SQL Data Type Name for the caller's type.
+Dim lv As String      'Lower Case Value.
+Dim rv As String      'Return Value.
+
+  lv = LCase(DataTypeName)
+  Select Case lv
+    Case "bool", "bit", "yes/no":
+      rv = "bit"
+    Case "date", "datetime", "date/time", "smalldatetime":
+      rv = "smalldatetime"
+    Case "int", "int32", "pk":
+      rv = "int"
+    Case "float":
+      rv = "float"
+    Case "decimal":
+      rv = "float"
+    Case "guid", "uniqueidentifier":
+      rv = "uniqueidentifier"
+    Case "string", "varchar":
+      rv = "varchar"
+    Case Else:
+      If Len(lv) > 5 Then
+        If Left(lv, 5) = "float" Then
+          rv = "float"
+        End If
+      End If
+  End Select
+  GetSqlType = rv
 End Function
 
 Private Sub HtmlFromTemplate(Target As Worksheet)

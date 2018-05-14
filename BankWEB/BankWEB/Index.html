@@ -99,13 +99,6 @@
     -->
     <div class="demo-section k-content">
      <table class="formFields">
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="customerTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.CustomerTicket" />
-       </td>
-      </tr>
 
       <tr>
        <td>Ticket:</td>
@@ -205,13 +198,6 @@
     -->
     <div class="demo-section k-content">
      <table class="formFields">
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="accountTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.AccountTicket" />
-       </td>
-      </tr>
 
       <tr>
        <td>Ticket:</td>
@@ -295,13 +281,6 @@
     -->
     <div class="demo-section k-content">
      <table class="formFields">
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="branchTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.BranchTicket" />
-       </td>
-      </tr>
 
       <tr>
        <td>Ticket:</td>
@@ -393,13 +372,6 @@
     -->
     <div class="demo-section k-content">
      <table class="formFields">
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="employeeTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.EmployeeTicket" />
-       </td>
-      </tr>
 
       <tr>
        <td>Ticket:</td>
@@ -683,11 +655,13 @@
      // The selected item belongs in the observable.
      selectedItem: null,
      hasChanges: false,
-     save: function() {
+     save: function()
+     {
       this.packageSource.sync();
       this.set("hasChanges", false);
      },
-     remove: function() {
+     remove: function()
+     {
       if(confirm("Are you sure you wish to delete this record?"))
       {
        console.log("Event: [remove] on customerViewModel...");
@@ -696,7 +670,8 @@
        this.change();
       }
      },
-     showForm: function() {
+     showForm: function()
+     {
       return this.get("selectedItem") != null;
      },
      change: function()
@@ -735,7 +710,7 @@
        id = this.selectedItem.CustomerID;
        vw = this.packageSource.data();
        il = vw.length;
-       for(ix = 0; ix < il; ix ++)
+       for(ix = 0; ix < il; ix++)
        {
         if(vw[ix].CustomerID == id)
         {
@@ -776,11 +751,13 @@
      // The selected item belongs in the observable.
      selectedItem: null,
      hasChanges: false,
-     save: function() {
+     save: function()
+     {
       this.packageSource.sync();
       this.set("hasChanges", false);
      },
-     remove: function() {
+     remove: function()
+     {
       if(confirm("Are you sure you wish to delete this record?"))
       {
        console.log("Event: [remove] on accountViewModel...");
@@ -789,7 +766,8 @@
        this.change();
       }
      },
-     showForm: function() {
+     showForm: function()
+     {
       return this.get("selectedItem") != null;
      },
      change: function()
@@ -828,7 +806,7 @@
        id = this.selectedItem.AccountID;
        vw = this.packageSource.data();
        il = vw.length;
-       for(ix = 0; ix < il; ix ++)
+       for(ix = 0; ix < il; ix++)
        {
         if(vw[ix].AccountID == id)
         {
@@ -869,11 +847,13 @@
      // The selected item belongs in the observable.
      selectedItem: null,
      hasChanges: false,
-     save: function() {
+     save: function()
+     {
       this.packageSource.sync();
       this.set("hasChanges", false);
      },
-     remove: function() {
+     remove: function()
+     {
       if(confirm("Are you sure you wish to delete this record?"))
       {
        console.log("Event: [remove] on branchViewModel...");
@@ -882,7 +862,8 @@
        this.change();
       }
      },
-     showForm: function() {
+     showForm: function()
+     {
       return this.get("selectedItem") != null;
      },
      change: function()
@@ -921,7 +902,7 @@
        id = this.selectedItem.BranchID;
        vw = this.packageSource.data();
        il = vw.length;
-       for(ix = 0; ix < il; ix ++)
+       for(ix = 0; ix < il; ix++)
        {
         if(vw[ix].BranchID == id)
         {
@@ -962,11 +943,13 @@
      // The selected item belongs in the observable.
      selectedItem: null,
      hasChanges: false,
-     save: function() {
+     save: function()
+     {
       this.packageSource.sync();
       this.set("hasChanges", false);
      },
-     remove: function() {
+     remove: function()
+     {
       if(confirm("Are you sure you wish to delete this record?"))
       {
        console.log("Event: [remove] on employeeViewModel...");
@@ -975,7 +958,8 @@
        this.change();
       }
      },
-     showForm: function() {
+     showForm: function()
+     {
       return this.get("selectedItem") != null;
      },
      change: function()
@@ -1014,7 +998,7 @@
        id = this.selectedItem.EmployeeID;
        vw = this.packageSource.data();
        il = vw.length;
-       for(ix = 0; ix < il; ix ++)
+       for(ix = 0; ix < il; ix++)
        {
         if(vw[ix].EmployeeID == id)
         {
