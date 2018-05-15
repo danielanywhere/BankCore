@@ -1,0 +1,5 @@
+# Manually set all packages information to documentation.
+BankViewModel/packages/* linguist-documentation
+BankWEB/packages/* linguist-documentation
+BankWPF/packages/* linguist-documentation
+
