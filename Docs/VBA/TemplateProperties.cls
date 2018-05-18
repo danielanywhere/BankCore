@@ -25,7 +25,7 @@ Private mColumnTypeName As String
 '  ${n} = m${n}
 'End Property
 'public property let ${n}(Value as ${t})
-'  m${n} = ${n}
+'  m${n} = Value
 'End Property
 'Bulk initialization pattern.
 'Find:(?i:private mColumn(?<n>[^ ]+) as (?<t>[^\r\n]+))
@@ -45,35 +45,35 @@ Public Property Get ColumnActive() As String
   ColumnActive = mColumnActive
 End Property
 Public Property Let ColumnActive(Value As String)
-  mColumnActive = ColumnActive
+  mColumnActive = Value
 End Property
 
 Public Property Get ColumnContent() As String
   ColumnContent = mColumnContent
 End Property
 Public Property Let ColumnContent(Value As String)
-  mColumnContent = ColumnContent
+  mColumnContent = Value
 End Property
 
 Public Property Get ColumnName() As String
   ColumnName = mColumnName
 End Property
 Public Property Let ColumnName(Value As String)
-  mColumnName = ColumnName
+  mColumnName = Value
 End Property
 
 Public Property Get ColumnRemark() As String
   ColumnRemark = mColumnRemark
 End Property
 Public Property Let ColumnRemark(Value As String)
-  mColumnRemark = ColumnRemark
+  mColumnRemark = Value
 End Property
 
 Public Property Get ColumnTypeName() As String
   ColumnTypeName = mColumnTypeName
 End Property
 Public Property Let ColumnTypeName(Value As String)
-  mColumnTypeName = ColumnTypeName
+  mColumnTypeName = Value
 End Property
 
 

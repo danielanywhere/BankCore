@@ -232,6 +232,30 @@
       </tr>
 
       <tr>
+       <td>Date Closed:</td>
+       <td>
+        <input id="accountDateClosed" type="text" class="k-textbox"
+               data-bind="value: selectedItem.DateClosed, events:{change:textChanged}" />
+       </td>
+      </tr>
+
+      <tr>
+       <td>Date Last Activity:</td>
+       <td>
+        <input id="accountDateLastActivity" type="text" class="k-textbox"
+               data-bind="value: selectedItem.DateLastActivity, events:{change:textChanged}" />
+       </td>
+      </tr>
+
+      <tr>
+       <td>Date Opened:</td>
+       <td>
+        <input id="accountDateOpened" type="text" class="k-textbox"
+               data-bind="value: selectedItem.DateOpened, events:{change:textChanged}" />
+       </td>
+      </tr>
+
+      <tr>
        <td>Employee ID:</td>
        <td>
         <input id="accountEmployeeID" type="text" class="k-textbox"
@@ -558,14 +582,11 @@
       BalanceAvailable: {},
       BalancePending: {},
       BranchID: {},
-      BranchName: {},
       CustomerID: {},
-      CustomerName: {},
       DateClosed: {},
       DateLastActivity: {},
       DateOpened: {},
       EmployeeID: {},
-      EmployeeName: {}
      }
     });
 
@@ -585,7 +606,6 @@
     var employeeModel = new kendo.data.Model.define({
      id: "EmployeeID",
      fields: {
-      DisplayName: {},
       EmployeeID: {},
       EmployeeTicket: {},
       FirstName: {},
@@ -1117,10 +1137,12 @@
       title: "Status"
      }, {
       field: "BalanceAvailable",
-      title: "Balance Available"
+      title: "Balance Available",
+      template: "Currency"
      }, {
       field: "BalancePending",
-      title: "Balance Pending"
+      title: "Balance Pending",
+      template: "Currency"
      }, {
       field: "BranchName",
       title: "Branch Name"
@@ -1129,13 +1151,16 @@
       title: "Customer Name"
      }, {
       field: "DateClosed",
-      title: "Date Closed"
+      title: "Date Closed",
+      template: "#= kendo.toString(kendo.parseDate(DateClosed), 'yyyyMMdd')#"
      }, {
       field: "DateLastActivity",
-      title: "Date Last Activity"
+      title: "Date Last Activity",
+      template: "#= kendo.toString(kendo.parseDate(DateLastActivity), 'yyyyMMdd')#"
      }, {
       field: "DateOpened",
-      title: "Date Opened"
+      title: "Date Opened",
+      template: "#= kendo.toString(kendo.parseDate(DateOpened), 'yyyyMMdd')#"
      }, {
       field: "EmployeeName",
       title: "Employee Name"
@@ -1238,10 +1263,12 @@
       width: 240
      }, {
       field: "DateStarted",
-      title: "Date Started"
+      title: "Date Started",
+      template: "#= kendo.toString(kendo.parseDate(DateStarted), 'yyyyMMdd')#"
      }, {
       field: "DateEnded",
-      title: "Date Ended"
+      title: "Date Ended",
+      template: "#= kendo.toString(kendo.parseDate(DateEnded), 'yyyyMMdd')#"
      }, {
       field: "Title",
       title: "Title"
@@ -1293,6 +1320,43 @@
     kendo.bind($("#frmBranch"), branchViewModel);
     kendo.bind($("#dgEmployees"), employeeViewModel);
     kendo.bind($("#frmEmployee"), employeeViewModel);
+
+    // Bind DatePicker Controls.
+    $("#accountDateClosed").kendoDatePicker(
+    {
+     start: "year",
+     depth: "year",
+     format: "MM/dd/yyyy",
+     dateInput: true
+    });
+    $("#accountDateLastActivity").kendoDatePicker(
+    {
+     start: "year",
+     depth: "year",
+     format: "MM/dd/yyyy",
+     dateInput: true
+    });
+    $("#accountDateOpened").kendoDatePicker(
+    {
+     start: "year",
+     depth: "year",
+     format: "MM/dd/yyyy",
+     dateInput: true
+    });
+    $("#employeeDateStarted").kendoDatePicker(
+    {
+     start: "year",
+     depth: "year",
+     format: "MM/dd/yyyy",
+     dateInput: true
+    });
+    $("#employeeDateEnded").kendoDatePicker(
+    {
+     start: "year",
+     depth: "year",
+     format: "MM/dd/yyyy",
+     dateInput: true
+    });
 
     // Set additional control behaviors.
     setReadOnly("#customerCustomerTicket");

@@ -15,8 +15,9 @@ Private mColumnDefaultValue As String
 Private mColumnDescription As String
 Private mColumnDisplay As String
 Private mColumnEditor As String
-Private mColumnFormat As String
+Private mColumnEditorFormat As String
 Private mColumnGrid As String
+Private mColumnGridFormat As String
 Private mColumnIsData As String
 Private mColumnIsDefault As String
 Private mColumnKeyName As String
@@ -34,6 +35,9 @@ Private mColumnUISource As String
 Private mColumnUIUpdate As String
 Private mColumnUIValue As String
 
+'Bulk member creation pattern.
+'Find:(?i:componentcolumn\.(?<f>[^\r\n]+))
+'Repl:private m${f} as string
 'Bulk property creation pattern.
 'Find:(?i:private m(?<n>[^ ]+) as (?<t>[^\r\n]+))
 'Repl:
@@ -41,7 +45,7 @@ Private mColumnUIValue As String
 '  ${n} = m${n}
 'End Property
 'public property let ${n}(Value as ${t})
-'  m${n} = ${n}
+'  m${n} = Value
 'End Property
 'Bulk initialization pattern.
 'Find:(?i:private mColumn(?<n>[^ ]+) as (?<t>[^\r\n]+))
@@ -57,8 +61,9 @@ Dim pfx As String   'Setting prefix.
   mColumnDescription = GetConfigValue(pfx & "Description")
   mColumnDisplay = GetConfigValue(pfx & "Display")
   mColumnEditor = GetConfigValue(pfx & "Editor")
-  mColumnFormat = GetConfigValue(pfx & "Format")
+  mColumnEditorFormat = GetConfigValue(pfx & "EditorFormat")
   mColumnGrid = GetConfigValue(pfx & "Grid")
+  mColumnGridFormat = GetConfigValue(pfx & "GridFormat")
   mColumnIsData = GetConfigValue(pfx & "IsData")
   mColumnIsDefault = GetConfigValue(pfx & "IsDefault")
   mColumnKeyName = GetConfigValue(pfx & "KeyName")
@@ -83,167 +88,174 @@ Public Property Get ColumnAlias() As String
   ColumnAlias = mColumnAlias
 End Property
 Public Property Let ColumnAlias(Value As String)
-  mColumnAlias = ColumnAlias
+  mColumnAlias = Value
 End Property
 
 Public Property Get ColumnDataType() As String
   ColumnDataType = mColumnDataType
 End Property
 Public Property Let ColumnDataType(Value As String)
-  mColumnDataType = ColumnDataType
+  mColumnDataType = Value
 End Property
 
 Public Property Get ColumnDefaultValue() As String
   ColumnDefaultValue = mColumnDefaultValue
 End Property
 Public Property Let ColumnDefaultValue(Value As String)
-  mColumnDefaultValue = ColumnDefaultValue
+  mColumnDefaultValue = Value
 End Property
 
 Public Property Get ColumnDescription() As String
   ColumnDescription = mColumnDescription
 End Property
 Public Property Let ColumnDescription(Value As String)
-  mColumnDescription = ColumnDescription
+  mColumnDescription = Value
 End Property
 
 Public Property Get ColumnDisplay() As String
   ColumnDisplay = mColumnDisplay
 End Property
 Public Property Let ColumnDisplay(Value As String)
-  mColumnDisplay = ColumnDisplay
+  mColumnDisplay = Value
 End Property
 
 Public Property Get ColumnEditor() As String
   ColumnEditor = mColumnEditor
 End Property
 Public Property Let ColumnEditor(Value As String)
-  mColumnEditor = ColumnEditor
+  mColumnEditor = Value
 End Property
 
-Public Property Get ColumnFormat() As String
-  ColumnFormat = mColumnFormat
+Public Property Get ColumnEditorFormat() As String
+  ColumnEditorFormat = mColumnEditorFormat
 End Property
-Public Property Let ColumnFormat(Value As String)
-  mColumnFormat = ColumnFormat
+Public Property Let ColumnEditorFormat(Value As String)
+  mColumnEditorFormat = Value
 End Property
 
 Public Property Get ColumnGrid() As String
   ColumnGrid = mColumnGrid
 End Property
 Public Property Let ColumnGrid(Value As String)
-  mColumnGrid = ColumnGrid
+  mColumnGrid = Value
+End Property
+
+Public Property Get ColumnGridFormat() As String
+  ColumnGridFormat = mColumnGridFormat
+End Property
+Public Property Let ColumnGridFormat(Value As String)
+  mColumnGridFormat = Value
 End Property
 
 Public Property Get ColumnIsData() As String
   ColumnIsData = mColumnIsData
 End Property
 Public Property Let ColumnIsData(Value As String)
-  mColumnIsData = ColumnIsData
+  mColumnIsData = Value
 End Property
 
 Public Property Get ColumnIsDefault() As String
   ColumnIsDefault = mColumnIsDefault
 End Property
 Public Property Let ColumnIsDefault(Value As String)
-  mColumnIsDefault = ColumnIsDefault
+  mColumnIsDefault = Value
 End Property
 
 Public Property Get ColumnKeyName() As String
   ColumnKeyName = mColumnKeyName
 End Property
 Public Property Let ColumnKeyName(Value As String)
-  mColumnKeyName = ColumnKeyName
+  mColumnKeyName = Value
 End Property
 
 Public Property Get ColumnKeyValue() As String
   ColumnKeyValue = mColumnKeyValue
 End Property
 Public Property Let ColumnKeyValue(Value As String)
-  mColumnKeyValue = ColumnKeyValue
+  mColumnKeyValue = Value
 End Property
 
 Public Property Get ColumnLength() As String
   ColumnLength = mColumnLength
 End Property
 Public Property Let ColumnLength(Value As String)
-  mColumnLength = ColumnLength
+  mColumnLength = Value
 End Property
 
 Public Property Get ColumnName() As String
   ColumnName = mColumnName
 End Property
 Public Property Let ColumnName(Value As String)
-  mColumnName = ColumnName
+  mColumnName = Value
 End Property
 
 Public Property Get ColumnOverride() As String
   ColumnOverride = mColumnOverride
 End Property
 Public Property Let ColumnOverride(Value As String)
-  mColumnOverride = ColumnOverride
+  mColumnOverride = Value
 End Property
 
 Public Property Get ColumnReadOnly() As String
   ColumnReadOnly = mColumnReadOnly
 End Property
 Public Property Let ColumnReadOnly(Value As String)
-  mColumnReadOnly = ColumnReadOnly
+  mColumnReadOnly = Value
 End Property
 
 Public Property Get ColumnSelect() As String
   ColumnSelect = mColumnSelect
 End Property
 Public Property Let ColumnSelect(Value As String)
-  mColumnSelect = ColumnSelect
+  mColumnSelect = Value
 End Property
 
 Public Property Get ColumnSource() As String
   ColumnSource = mColumnSource
 End Property
 Public Property Let ColumnSource(Value As String)
-  mColumnSource = ColumnSource
+  mColumnSource = Value
 End Property
 
 Public Property Get ColumnTable() As String
   ColumnTable = mColumnTable
 End Property
 Public Property Let ColumnTable(Value As String)
-  mColumnTable = ColumnTable
+  mColumnTable = Value
 End Property
 
 Public Property Get ColumnUIDisplay() As String
   ColumnUIDisplay = mColumnUIDisplay
 End Property
 Public Property Let ColumnUIDisplay(Value As String)
-  mColumnUIDisplay = ColumnUIDisplay
+  mColumnUIDisplay = Value
 End Property
 
 Public Property Get ColumnUIKey() As String
   ColumnUIKey = mColumnUIKey
 End Property
 Public Property Let ColumnUIKey(Value As String)
-  mColumnUIKey = ColumnUIKey
+  mColumnUIKey = Value
 End Property
 
 Public Property Get ColumnUISource() As String
   ColumnUISource = mColumnUISource
 End Property
 Public Property Let ColumnUISource(Value As String)
-  mColumnUISource = ColumnUISource
+  mColumnUISource = Value
 End Property
 
 Public Property Get ColumnUIUpdate() As String
   ColumnUIUpdate = mColumnUIUpdate
 End Property
 Public Property Let ColumnUIUpdate(Value As String)
-  mColumnUIUpdate = ColumnUIUpdate
+  mColumnUIUpdate = Value
 End Property
 
 Public Property Get ColumnUIValue() As String
   ColumnUIValue = mColumnUIValue
 End Property
 Public Property Let ColumnUIValue(Value As String)
-  mColumnUIValue = ColumnUIValue
+  mColumnUIValue = Value
 End Property
 

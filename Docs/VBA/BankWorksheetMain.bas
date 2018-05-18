@@ -7,6 +7,8 @@ Option Explicit
 Private Const ScopePrivate = 0
 Private Const ScopeProtected = 1
 Private Const ScopePublic = 2
+Private CCfg As New ComponentProperties
+Private TCfg As New TemplateProperties
 
 Private Sub CodeFromTemplate(Target As Worksheet)
 'Each class level is handled separately.
@@ -59,7 +61,7 @@ Dim ws As String    'Working String.
     'Count the fields.
     lb = 2
     lp = lb
-    Do While Len(ValueCell("A", lp)) > 0
+    Do While Len(ValueCell(CCfg.ColumnName, lp)) > 0
       lp = lp + 1
     Loop
     lc = lp - lb
@@ -67,7 +69,7 @@ Dim ws As String    'Working String.
     'Initialize the field names.
     cv.Clear
     For lp = lb To le
-      cv.AddValue ValueCell("A", lp), CStr(lp)
+      cv.AddValue ValueCell(CCfg.ColumnName, lp), CStr(lp)
     Next lp
     cv.Sort
     'Initialize the replacement tags.
@@ -95,16 +97,16 @@ Dim ws As String    'Working String.
       rb = 2            'Starting at remote row 2.
       rp = rb
       'Count the remote rows.
-      Do While Len(ValueCellSheet(st, "A", rp)) > 0
+      Do While Len(ValueCellSheet(st, TCfg.ColumnActive, rp)) > 0
         rp = rp + 1
       Loop
       rc = rp - rb
       re = rp - 1
       
       For rp = rb To re
-        If ValueCellSheet(st, "A", rp) = "1" Then
+        If ValueCellSheet(st, TCfg.ColumnActive, rp) = "1" Then
           'Row is active.
-          ws = ValueCellSheet(st, "B", rp)
+          ws = ValueCellSheet(st, TCfg.ColumnTypeName, rp)
           Select Case LCase(ws)
             Case "space":
               'Add a blank line of space.
@@ -112,11 +114,11 @@ Dim ws As String    'Working String.
             Case "using":
               'In this version, all using statements occur
               ' prior to the namespace.
-              fc = fc & ValueCellSheet(st, "D", rp) & vbCrLf
+              fc = fc & ValueCellSheet(st, TCfg.ColumnContent, rp) & vbCrLf
             Case "namespace":
               'In this version, all classes are in a single namespace.
               fc = fc & "namespace " & _
-                ValueCellSheet(st, "D", rp) & vbCrLf
+                ValueCellSheet(st, TCfg.ColumnContent, rp) & vbCrLf
               fc = fc & "{" & vbCrLf
               cb = cb + 1
             Case "class":
@@ -133,15 +135,17 @@ Dim ws As String    'Working String.
                 nn = ""
               End If
               For tp = rp + 1 To re
-                If ValueCellSheet(st, "A", tp) = "1" And _
-                  InStr(LCase(ValueCellSheet(st, "B", tp)), _
+                If ValueCellSheet(st, TCfg.ColumnActive, tp) = "1" And _
+                  InStr(LCase(ValueCellSheet(st, TCfg.ColumnTypeName, tp)), _
                   "fieldrepeat") > 0 Then
+                  'Field repeater found.
                   pv(sc).AddValue _
-                    ValueCellSheet(st, "B", tp), _
-                    ValueCellSheet(st, "D", tp)
-                ElseIf LCase(ValueCellSheet(st, "B", tp)) = "section" Then
+                    ValueCellSheet(st, TCfg.ColumnTypeName, tp), _
+                    ValueCellSheet(st, TCfg.ColumnContent, tp)
+                ElseIf LCase(ValueCellSheet(st, TCfg.ColumnTypeName, tp)) = _
+                  "section" Then
                   'Key the repeaters to their associated sections.
-                  ws = LCase(ValueCellSheet(st, "D", tp))
+                  ws = LCase(ValueCellSheet(st, TCfg.ColumnContent, tp))
                   Select Case ws
                     Case "private":
                       sc = ScopePrivate
@@ -150,7 +154,8 @@ Dim ws As String    'Working String.
                     Case "public":
                       sc = ScopePublic
                   End Select
-                ElseIf LCase(ValueCellSheet(st, "B", tp)) = "class" Then
+                ElseIf LCase(ValueCellSheet(st, TCfg.ColumnTypeName, tp)) = _
+                  "class" Then
                   'Don't continue into the next class definition.
                   Exit For
                 End If
@@ -164,14 +169,14 @@ Dim ws As String    'Working String.
                 bo = False
               End If
               'Get the source for this class header.
-              ws = ResolveTags(ValueCellSheet(st, "D", rp), tv)
+              ws = ResolveTags(ValueCellSheet(st, TCfg.ColumnContent, rp), tv)
               ws = ResolveParamTags(ws)
               fc = fc & ws & vbCrLf
               fc = fc & GetTabs(1) & "{" & vbCrLf
               cb = cb + 1
               bo = True
             Case "section":
-              ws = ValueCellSheet(st, "D", rp)
+              ws = ValueCellSheet(st, TCfg.ColumnContent, rp)
               fc = fc & GetSectionBreak(ws) & vbCrLf
               tv.SetValue "{Scope}", ws
               Select Case LCase(ws)
@@ -184,11 +189,12 @@ Dim ws As String    'Working String.
               End Select
             Case "method", "property", "field":
               'Get the local name.
-              ws = ValueCellSheet(st, "C", rp)
+              ws = ValueCellSheet(st, TCfg.ColumnName, rp)
               If Len(nn) = 0 Or pv(sc).Count = 0 Or _
                 CompareStrings(ws, nn) < 0 Then
                 'Current entry occurs before the next repeater.
-                ws = ResolveTags(ValueCellSheet(st, "D", rp), tv)
+                ws = _
+                  ResolveTags(ValueCellSheet(st, TCfg.ColumnContent, rp), tv)
                 ws = ResolveParamTags(ws)
                 fc = fc & ws & vbCrLf
               Else
@@ -198,19 +204,19 @@ Dim ws As String    'Working String.
                 lp = CInt(nv.Value)
 '                fv.Clear
 '                fv.AddRange tv
-'                fv.AddValue "{FieldName}", ValueCell("A", lp)
-'                fv.AddValue "{FieldDataType}", ValueCell("B", lp)
-'                fv.AddValue "{FieldDefaultValue}", ValueCell("C", lp)
-'                fv.AddValue "{FieldNative}", ValueCell("D", lp)
-'                fv.AddValue "{FieldSource}", ValueCell("E", lp)
-'                fv.AddValue "{FieldTable}", ValueCell("F", lp)
+'                fv.AddValue "{FieldName}", ValueCell(CCfg.ColumnName, lp)
+'                fv.AddValue "{FieldDataType}", ValueCell(CCfg.ColumnDataType, lp)
+'                fv.AddValue "{FieldDefaultValue}", ValueCell(CCfg.ColumnDefaultValue, lp)
+'                fv.AddValue "{FieldNative}", ValueCell(CCfg.ColumnIsData, lp)
+'                fv.AddValue "{FieldSource}", ValueCell(CCfg.ColumnSource, lp)
+'                fv.AddValue "{FieldTable}", ValueCell(CCfg.ColumnTable, lp)
 '                fv.AddValue "{FieldSelect}", _
-'                  Replace(ValueCell("G", lp), """", "\""")
-'                fv.AddValue "{FieldAlias}", ValueCell("H", lp)
-'                fv.AddValue "{FieldKeyName}", ValueCell("I", lp)
-'                fv.AddValue "{FieldKeyValue}", ValueCell("J", lp)
+'                  Replace(ValueCell(CCfg.ColumnSelect, lp), """", "\""")
+'                fv.AddValue "{FieldAlias}", ValueCell(CCfg.ColumnAlias, lp)
+'                fv.AddValue "{FieldKeyName}", ValueCell(CCfg.ColumnKeyName, lp)
+'                fv.AddValue "{FieldKeyValue}", ValueCell(CCfg.ColumnKeyValue, lp)
 '                fv.AddValue "{FieldSQLType}", _
-'                  GetScalarType(ValueCell("B", lp))
+'                  GetScalarType(ValueCell(CCfg.ColumnDataType, lp))
                 UpdateFieldTags sh, lp, tv, fv
                 'Resolve connected repeaters.
                 lc = pv(sc).Count
@@ -378,7 +384,6 @@ Dim bc As Boolean         'Flag - Continue.
 Dim bid As Boolean        'Flag - ID Column.
 Dim bMax As Boolean       'Max Columns require the use of TEXTIMAGE_ON
 Dim cName As String       'Column Name.
-Dim cProps As ColumnProperties
 Dim cType As String       'Column Type.
 Dim cLen As String        'Column Explicit Length.
 Dim cDef As String        'Default Value.
@@ -399,6 +404,7 @@ Dim tc As String          'Table Content.
 Dim tName As String       'Table Name.
 Dim ts As Object          'Text Stream.
 
+  On Local Error Resume Next
   bc = False
   tName = Application.ActiveSheet.Name
   If Len(tName) > 9 Then
@@ -415,7 +421,6 @@ Dim ts As Object          'Text Stream.
   End If
 
   If bc = True Then
-    Set cProps = New ColumnProperties
     iName = Replace(tName, "Component", "")
     tName = "bnk" & iName
   
@@ -433,19 +438,19 @@ Dim ts As Object          'Text Stream.
   
     pk = ""
     lp = 2
-    Do While Len(ValueCell(cProps.ColumnName, lp)) > 0
+    Do While Len(ValueCell(CCfg.ColumnName, lp)) > 0
       bid = False
-      If LCase(ValueCell(cProps.ColumnDataType, lp)) = "object" And _
-        LCase(ValueCell(cProps.ColumnSource, lp)) = "item" Then
+      If LCase(ValueCell(CCfg.ColumnDataType, lp)) = "object" And _
+        LCase(ValueCell(CCfg.ColumnSource, lp)) = "item" Then
         'The identity specification is found on the default value of the
         ' abstract item.
-        ident = "IDENTITY(" & ValueCell(cProps.ColumnDefaultValue, lp) & ")"
-      ElseIf ValueCell(cProps.ColumnIsData, lp) = "1" Then
+        ident = "IDENTITY(" & ValueCell(CCfg.ColumnDefaultValue, lp) & ")"
+      ElseIf ValueCell(CCfg.ColumnIsData, lp) = "1" Then
         'Only script to table if this is a data column.
-        cName = ValueCell(cProps.ColumnName, lp)
-        cType = GetSqlType(ValueCell(cProps.ColumnDataType, lp))
-        cLen = ValueCell(cProps.ColumnLength, lp)
-        cDef = GetSqlDefault(ValueCell(cProps.ColumnDefaultValue, lp))
+        cName = ValueCell(CCfg.ColumnName, lp)
+        cType = GetSqlType(ValueCell(CCfg.ColumnDataType, lp))
+        cLen = ValueCell(CCfg.ColumnLength, lp)
+        cDef = GetSqlDefault(ValueCell(CCfg.ColumnDefaultValue, lp))
         If LCase(cName) = LCase(iName) & "id" Then
           'This is the ID column. Use the prescribed identity.
           cDef = ident
@@ -454,8 +459,8 @@ Dim ts As Object          'Text Stream.
           'This is the global identity column.
           cDef = "ROWGUIDCOL"
         End If
-        cNull = GetSqlNullable(ValueCell(cProps.ColumnDefaultValue, lp))
-        cDesc = ValueCell(cProps.ColumnDescription, lp)
+        cNull = GetSqlNullable(ValueCell(CCfg.ColumnDefaultValue, lp))
+        cDesc = ValueCell(CCfg.ColumnDescription, lp)
         If Len(tc) > 0 Then
           tc = tc & ", " & vbCrLf
         End If
@@ -524,13 +529,22 @@ Dim ts As Object          'Text Stream.
         "GO" & vbCrLf
       fc = fc & dCreate & vbCrLf
       Set fso = CreateObject("Scripting.FileSystemObject")
+      Err.Clear
       Set ts = fso.CreateTextFile(fln, True, False)
-      ts.Write fc
-      ts.Close
+      If Err.Number = 0 Then
+        ts.Write fc
+        ts.Close
+        MsgBox "SQL Table Script Saved to " & fln, vbOKOnly, _
+          "Create SQL Table Script"
+      Else
+        MsgBox "Error saving SQL file: " & Err.Description & _
+          vbCrLf & _
+          "Check the Configuration sheet, [TableFolderName] value.", _
+          vbOKOnly, "Create SQL Table Script"
+        Err.Clear
+      End If
       Set ts = Nothing
       Set fso = Nothing
-      MsgBox "SQL Table Script Saved to " & fln, vbOKOnly, _
-        "Create SQL Table Script"
     End If
   End If
 
@@ -564,6 +578,79 @@ Dim ws As String    'Working String.
 
 End Function
 
+Private Function FindClosingElementEnd(Value As String, _
+  Index As Integer) As Integer
+'Return the character position of the last character of the closing element
+' that matches this element.
+Dim cb As Integer   'Character Begin.
+Dim cc As Integer   'Character Count.
+Dim ce As Integer   'Character End.
+Dim cl As String    'Left Reference Character.
+Dim cp As Integer   'Character Position.
+Dim cr As String    'Right Reference Character.
+Dim es As New StringStack
+Dim ip As Integer   'Instring Position.
+Dim iv As String    'Internal Value.
+Dim mv As String    'Matching Value.
+Dim rv As Integer   'Return Value.
+Dim sv As String    'Starting Value.
+
+  rv = 0
+  cc = Len(Value)
+  cb = Index
+  ce = FindClosingBrace(Value, cb)
+  If ce > cb + 1 Then
+    'A value is known.
+    cl = Mid(Value, cb, 1)
+    Select Case cl
+      Case "[":
+        cr = "]"
+      Case "{":
+        cr = "}"
+      Case "(":
+        cr = ")"
+      Case "<":
+        cr = ">"
+    End Select
+    'Internal Value.
+    iv = Mid(Value, cb + 1, ce - cb - 1)
+    sv = Mid(Value, cb, ce - cb + 1)
+    mv = cl & "/" & iv & cr
+    ip = InStr(ce + 1, Value, mv)
+    Do While ip > 0
+      'A closing tag was found. Verify it is the right one.
+      es.Clear
+      For cp = ce To ip - 1
+        If cc > cp + Len(sv) Then
+          If Mid(Value, cp, Len(sv)) = sv Then
+            'Open another element of the same name before close.
+            es.Push mv
+          End If
+        End If
+        If cc > cp + Len(mv) Then
+          If Mid(Value, cp, Len(mv)) = mv Then
+            'Balance the stack.
+            es.Pop
+          End If
+        End If
+      Next cp
+      If es.Count = 0 Then
+        Exit Do
+      Else
+        ip = ip + 1
+        es.Clear
+        ip = InStr(ip, Value, mv)
+      End If
+    Loop
+    If ip > 0 Then
+      'The end value was found. Return the last char pos.
+      rv = ip + Len(mv) - 1
+    End If
+  End If
+  FindClosingElementEnd = rv
+
+End Function
+
 Private Function GetBorder(MemberName As String) As String
 'Return the border line surrounding a type of member.
 Dim rv As String    'Return Value.
@@ -594,6 +681,7 @@ Dim tl As String    'Lowercase Name.
     If LCase(sh.Range("A" & CStr(lp)).Value) = tl Then
       'Name found.
       rv = sh.Range("B" & CStr(lp)).Value
+      Exit Do
     End If
     lp = lp + 1
   Loop
@@ -608,9 +696,9 @@ Dim rv As String  'Return Value.
 
   rv = 0
   lp = 2
-  Do While Len(ValueCellSheet(Sheet, "A", lp)) > 0
-    If ValueCellSheet(Sheet, "V", lp) = "1" Then
-      rv = ValueCellSheet(Sheet, "L", lp)
+  Do While Len(ValueCellSheet(Sheet, CCfg.ColumnName, lp)) > 0
+    If ValueCellSheet(Sheet, CCfg.ColumnIsDefault, lp) = "1" Then
+      rv = ValueCellSheet(Sheet, CCfg.ColumnDisplay, lp)
       Exit Do
     End If
     lp = lp + 1
@@ -626,9 +714,9 @@ Dim rv As String  'Return Value.
 
   rv = 0
   lp = 2
-  Do While Len(ValueCellSheet(Sheet, "A", lp)) > 0
-    If ValueCellSheet(Sheet, "V", lp) = "1" Then
-      rv = ValueCellSheet(Sheet, "A", lp)
+  Do While Len(ValueCellSheet(Sheet, CCfg.ColumnName, lp)) > 0
+    If ValueCellSheet(Sheet, CCfg.ColumnIsDefault, lp) = "1" Then
+      rv = ValueCellSheet(Sheet, CCfg.ColumnName, lp)
       Exit Do
     End If
     lp = lp + 1
@@ -661,7 +749,7 @@ Dim rv As Integer 'Return Value.
 
   rv = 0
   lp = StartIndex
-  Do While Len(ValueCellSheet(Sheet, "A", lp)) > 0
+  Do While Len(ValueCellSheet(Sheet, CCfg.ColumnName, lp)) > 0
     If Len(ValueCellSheet(Sheet, ColumnName, lp)) > 0 Then
       rv = lp
     End If
@@ -682,7 +770,7 @@ Dim tl As String  'Lowercase Value.
   rv = 0
   tl = LCase(CellValue)
   lp = StartIndex
-  Do While Len(ValueCellSheet(Sheet, "A", lp)) > 0
+  Do While Len(ValueCellSheet(Sheet, CCfg.ColumnName, lp)) > 0
     If LCase(ValueCellSheet(Sheet, ColumnName, lp)) = tl Then
       rv = lp
     End If
@@ -757,8 +845,8 @@ Dim lp As Integer 'List Position.
 Dim rv As Integer 'Return Value.
 
   lp = 2
-  Do While Len(ValueCellSheet(Sheet, "A", lp)) > 0
-    If LCase(ValueCellSheet(Sheet, "E", lp)) = "item" Then
+  Do While Len(ValueCellSheet(Sheet, CCfg.ColumnName, lp)) > 0
+    If LCase(ValueCellSheet(Sheet, CCfg.ColumnSource, lp)) = "item" Then
       rv = lp
       Exit Do
     End If
@@ -775,12 +863,12 @@ Dim lp As Integer 'List Position.
 Dim rv As String  'Return Value.
 
   lp = StartIndex
-  Do While Len(ValueCellSheet(Sheet, "A", lp)) > 0
-    If ValueCellSheet(Sheet, "D", lp) = "1" Then
+  Do While Len(ValueCellSheet(Sheet, CCfg.ColumnName, lp)) > 0
+    If ValueCellSheet(Sheet, CCfg.ColumnIsData, lp) = "1" Then
       If Len(rv) > 0 Then
         rv = rv & ", "
       End If
-      rv = rv & """" & ValueCellSheet(Sheet, "A", lp) & """"
+      rv = rv & """" & ValueCellSheet(Sheet, CCfg.ColumnName, lp) & """"
     End If
     lp = lp + 1
   Loop
@@ -991,6 +1079,7 @@ Dim rp As Integer   'Reference Row Position.
 Dim sh As Worksheet 'Working Sheet.
 Dim st As Worksheet 'Template Sheet.
 Dim tc As Integer   'Template Count.
+Dim tk As New FieldTokenItem  'Token for delegating field work.
 Dim tl As String    'Lowercase Value.
 Dim tp As Integer   'Template Row Position.
 Dim ts As String    'Transitory Working String.
@@ -1010,18 +1099,21 @@ Dim ws As String    'Working String.
   End If
 
   If bc = True Then
+    Set tk.CompareValues = cv
+    Set tk.ComponentValues = mv
+    Set tk.FieldValues = fv
     'Count the fields.
     lb = 2
-    le = GetEndRow(st, "A", lb)
+    le = GetEndRow(st, CCfg.ColumnName, lb)
     lc = le - lb + 1
     'Initialize the repeaters (groups).
     ge = 0
     gn = ""
     Set tv = Nothing
     For lp = lb To le
-      If ValueCell("A", lp) = "1" Then
+      If ValueCell(CCfg.ColumnName, lp) = "1" Then
         'Row is active.
-        ws = ValueCell("B", lp)
+        ws = ValueCell(CCfg.ColumnDataType, lp)
         tl = LCase(ws)
         If lp > ge Then
           'Not working within the current group.
@@ -1029,9 +1121,9 @@ Dim ws As String    'Working String.
           Set tv = New NameValueTypeCollection
           pv.Add tv
           For tp = lp To le
-            If ValueCell("A", tp) = "1" Then
+            If ValueCell(CCfg.ColumnName, tp) = "1" Then
               'Row is active.
-              ws = ValueCell("B", tp)
+              ws = ValueCell(CCfg.ColumnDataType, tp)
               tl = LCase(ws)
               If InStr(tl, "fieldrepeat(") > 0 Then
                 'Field repeater found.
@@ -1043,9 +1135,9 @@ Dim ws As String    'Working String.
                   gn = GetParameter(ws, 2)
                   bf = False
                   For rp = tp + 1 To le
-                    If ValueCell("A", rp) = "1" Then
+                    If ValueCell(CCfg.ColumnName, rp) = "1" Then
                       'Row is active.
-                      ws = ValueCell("B", rp)
+                      ws = ValueCell(CCfg.ColumnDataType, rp)
                       tl = LCase(ws)
                       If InStr(tl, "fieldrepeat(") > 0 Then
                         If GetParameter(ws, 2) = gn Then
@@ -1078,8 +1170,8 @@ Dim ws As String    'Working String.
           Next tp
         End If
         'Add this item to the current group list.
-        tv.AddValue ValueCell("C", lp), ValueCell("D", lp), _
-          ValueCell("B", lp)
+        tv.AddValue ValueCell(CCfg.ColumnDefaultValue, lp), ValueCell(CCfg.ColumnIsData, lp), _
+          ValueCell(CCfg.ColumnDataType, lp)
       End If
     Next lp
     'All lines in the template sheet are now stored as groups and
@@ -1152,6 +1244,7 @@ Dim ws As String    'Working String.
             ct = 0
           End If
         End If
+        tk.ComponentType = ct
         Select Case ct
           Case 0: 'Filler.
             ws = ResolveParamTags(nv.Value)
@@ -1161,6 +1254,7 @@ Dim ws As String    'Working String.
             For cp = 0 To cc - 1
               'Select the component sheet.
               Set sh = Sheets(ca(cp))
+              Set tk.Sheet = sh
               'Update the component tags.
               UpdateComponentTags sh, mv
               mc = pi.Count
@@ -1173,8 +1267,10 @@ Dim ws As String    'Working String.
                   Select Case gn
                     Case "component":
                       'Data with this component.
+                      cv.SetMatches "{ifEditor", "False"
+                      cv.SetMatches "{ifFormat", "False"
                       cv.SetValue "{ifFieldCountGT0}", _
-                        CStr(GetEndRow(sh, "A", 3) > 0)
+                        CStr(GetEndRow(sh, CCfg.ColumnName, 3) > 0)
                       cv.SetValue "{ifFirst}", CStr(cp = 0)
                       cv.SetValue "{ifNotFirst}", CStr(cp <> 0)
                       cv.SetValue "{ifLast}", CStr(cp >= cc - 1)
@@ -1185,6 +1281,8 @@ Dim ws As String    'Working String.
                       ts = ResolveConditionTags(ts, cv)
                       fc = fc & ts & vbCrLf
                     Case "data", "entry":
+                      'Component / Data.
+                      'Component / Entry.
                       'All fields in this component.
                       If gn = "data" Then
                         ct = 2
@@ -1194,83 +1292,123 @@ Dim ws As String    'Working String.
                       fb = 2
                       If ct = 2 Then
                         'Last row for data is probably early.
-                        fe = GetEndRowValue(sh, "D", "1", fb)
+                        fe = GetEndRowValue(sh, CCfg.ColumnIsData, "1", fb)
                       Else
                         'All entries valid except 'item'.
-                        fe = GetEndRow(sh, "A", fb)
+                        fe = GetEndRow(sh, CCfg.ColumnName, fb)
                       End If
                       cv.SetValue "{ifFieldCountGT0}", CStr(fe > 0)
-                      bf = False
+                      tk.MatchFound = False
+                      tk.RowEnd = fe
+                      tk.TemplateValue = nv.Value
                       For fp = fb To fe
-                        If (ct = 3 Or ValueCellSheet(sh, "D", fp) = "1") And _
-                          LCase(ValueCellSheet(sh, "E", fp)) <> "item" Then
-                          'Matching field. Run the template on these values.
-                          cv.SetValue "{ifFirst}", CStr(Not bf)
-                          cv.SetValue "{ifNotFirst}", CStr(bf)
-                          cv.SetValue "{ifLast}", CStr(fp >= fe)
-                          cv.SetValue "{ifNotLast}", CStr(fp < fe)
-                          cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
-                          bf = True
-                          UpdateFieldTags sh, fp, mv, fv
-                          ts = ResolveTags(nv.Value, fv)
-                          ts = ResolveParamTags(ts)
-                          ts = ResolveConditionTags(ts, cv)
-                          fc = fc & ts & vbCrLf
-                        End If
+                        tk.RowIndex = fp
+                        fc = fc & HtmlProcessDataEntryItem(tk)
+'                        If (ct = 3 Or _
+'                          ValueCellSheet(sh, CCfg.ColumnIsData, fp) = _
+'                          "1") And _
+'                          LCase(ValueCellSheet(sh, CCfg.ColumnSource, fp)) <> _
+'                          "item" Then
+'                          'Matching field. Run the template on these values.
+'                          cv.SetMatches "{ifEditor", "False"
+'                          cv.SetMatches "{ifFormat", "False"
+'                          cv.SetValue "{ifFirst}", CStr(Not bf)
+'                          cv.SetValue "{ifNotFirst}", CStr(bf)
+'                          cv.SetValue "{ifLast}", CStr(fp >= fe)
+'                          cv.SetValue "{ifNotLast}", CStr(fp < fe)
+'                          cv.SetValue "{ifReadOnly}", _
+'                            CStr(IsFieldReadOnly(sh, fp))
+'                          ws = ValueCellSheet(sh, CCfg.ColumnEditor, fp)
+'                          If Len(ws) > 0 Then
+'                            cv.SetValue "{ifEditor" & ws & "}", "True"
+'                          End If
+'                          bf = True
+'                          UpdateFieldTags sh, fp, mv, fv
+'                          ts = ResolveTags(nv.Value, fv)
+'                          ts = ResolveParamTags(ts)
+'                          ts = ResolveConditionTags(ts, cv)
+'                          If Len(ts) > 0 Then
+'                            fc = fc & ts & vbCrLf
+'                          End If
+'                        End If
                       Next fp
                     Case "edit":
+                      'Component / Edit.
                       'Add editor fields in this component.
                       fb = 2
                       'Last row for edit is probably early.
-                      fe = GetEndRowNonBlank(sh, "O", fb)
+                      fe = GetEndRowNonBlank(sh, CCfg.ColumnEditor, fb)
                       cv.SetValue "{ifFieldCountGT0}", CStr(fe > 0)
-                      bf = False
+                      tk.MatchFound = False
+                      tk.RowEnd = fe
+                      tk.TemplateValue = nv.Value
                       For fp = fb To fe
-                        If Len(ValueCellSheet(sh, "O", fp)) > 0 Then
-                          'Matching field. Run the template on these values.
-                          cv.SetValue "{ifFirst}", CStr(Not bf)
-                          cv.SetValue "{ifNotFirst}", CStr(bf)
-                          cv.SetValue "{ifLast}", CStr(fp >= fe)
-                          cv.SetValue "{ifNotLast}", CStr(fp < fe)
-                          cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
-                          bf = True
-                          UpdateFieldTags sh, fp, mv, fv
-                          ts = ResolveTags(nv.Value, fv)
-                          ts = ResolveParamTags(ts)
-                          ts = ResolveConditionTags(ts, cv)
-                          fc = fc & ts & vbCrLf
-                        End If
+                        tk.RowIndex = fp
+                        fc = fc & HtmlProcessEditItem(tk)
+'                        ws = ValueCellSheet(sh, CCfg.ColumnEditor, fp)
+'                        If Len(ws) > 0 Then
+'                          'Matching field. Run the template on these values.
+'                          cv.SetMatches "{ifEditor", "False"
+'                          cv.SetMatches "{ifFormat", "False"
+'                          cv.SetValue "{ifFirst}", CStr(Not bf)
+'                          cv.SetValue "{ifNotFirst}", CStr(bf)
+'                          cv.SetValue "{ifLast}", CStr(fp >= fe)
+'                          cv.SetValue "{ifNotLast}", CStr(fp < fe)
+'                          cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
+'                          cv.SetValue "{ifEditor" & ws & "}", "True"
+'                          bf = True
+'                          UpdateFieldTags sh, fp, mv, fv
+'                          ts = ResolveTags(nv.Value, fv)
+'                          ts = ResolveParamTags(ts)
+'                          ts = ResolveConditionTags(ts, cv)
+'                          If Len(ts) > 0 Then
+'                            fc = fc & ts & vbCrLf
+'                          End If
+'                        End If
                       Next fp
                     Case "gridcol":
+                      'Component / Grid.
                       'Add grid column fields in this component.
                       'Non-default only.
                       fb = 2
                       'Last row for edit is probably early.
-                      fe = GetEndRowNonBlank(sh, "N", fb)
+                      fe = GetEndRowNonBlank(sh, CCfg.ColumnGrid, fb)
                       cv.SetValue "{ifFieldCountGT0}", CStr(fe > 0)
-                      bf = False
+                      tk.MatchFound = False
+                      tk.RowEnd = fe
+                      tk.TemplateValue = nv.Value
                       For fp = fb To fe
-                        If Len(ValueCellSheet(sh, "N", fp)) > 0 And _
-                          ValueCellSheet(sh, "V", fp) <> "1" Then
-                          'Matching field. Run the template on these values.
-                          cv.SetValue "{ifFirst}", CStr(Not bf)
-                          cv.SetValue "{ifNotFirst}", CStr(bf)
-                          cv.SetValue "{ifLast}", CStr(fp >= fe)
-                          cv.SetValue "{ifNotLast}", CStr(fp < fe)
-                          cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
-                          bf = True
-                          UpdateFieldTags sh, fp, mv, fv
-                          ts = ResolveTags(nv.Value, fv)
-                          ts = ResolveParamTags(ts)
-                          ts = ResolveConditionTags(ts, cv)
-                          fc = fc & ts & vbCrLf
-                        End If
+                        tk.RowIndex = fp
+                        fc = fc & HtmlProcessGridColItem(tk)
+'                        If Len(ValueCellSheet(sh, CCfg.ColumnGrid, fp)) > 0 And _
+'                          ValueCellSheet(sh, CCfg.ColumnIsDefault, fp) <> "1" Then
+'                          'Matching field. Run the template on these values.
+'                          cv.SetMatches "{ifEditor", "False"
+'                          cv.SetMatches "{ifFormat", "False"
+'                          cv.SetValue "{ifFirst}", CStr(Not bf)
+'                          cv.SetValue "{ifNotFirst}", CStr(bf)
+'                          cv.SetValue "{ifLast}", CStr(fp >= fe)
+'                          cv.SetValue "{ifNotLast}", CStr(fp < fe)
+'                          cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
+'                          ws = ValueCellSheet(sh, CCfg.ColumnGridFormat, fp)
+'                          If Len(ws) > 0 Then
+'                            cv.SetValue "{ifFormatGrid}", "True"
+'                          End If
+'                          bf = True
+'                          UpdateFieldTags sh, fp, mv, fv
+'                          ts = ResolveTags(nv.Value, fv)
+'                          ts = ResolveParamTags(ts)
+'                          ts = ResolveConditionTags(ts, cv)
+'                          fc = fc & ts & vbCrLf
+'                        End If
                       Next fp
                   End Select
                 Else
                   'Normal line. Treat as component repeat.
+                  cv.SetMatches "{ifEditor", "False"
+                  cv.SetMatches "{ifFormat", "False"
                   cv.SetValue "{ifFieldCountGT0}", _
-                    CStr(GetEndRow(sh, "A", 3) > 0)
+                    CStr(GetEndRow(sh, CCfg.ColumnName, 3) > 0)
                   cv.SetValue "{ifFirst}", CStr(cp = 0)
                   cv.SetValue "{ifNotFirst}", CStr(cp <> 0)
                   cv.SetValue "{ifLast}", CStr(cp >= cc - 1)
@@ -1286,93 +1424,130 @@ Dim ws As String    'Working String.
             'Done processing for entire group.
             Exit For
           Case 2, 3: 'Data, Entry.
+            'Standalone Data.
+            'Standalone Entry.
             'List all fields in every component.
             For cp = 0 To cc - 1
               'Select the component sheet.
               Set sh = Sheets(ca(cp))
+              Set tk.Sheet = sh
               UpdateComponentTags sh, mv
               fb = 2
               If ct = 2 Then
                 'Last row for data is probably early.
-                fe = GetEndRowValue(sh, "D", "1", fb)
+                fe = GetEndRowValue(sh, CCfg.ColumnIsData, "1", fb)
               Else
                 'All entries valid except 'item'.
-                fe = GetEndRow(sh, "A", fb)
+                fe = GetEndRow(sh, CCfg.ColumnName, fb)
               End If
               cv.SetValue "{ifFieldCountGT0}", CStr(fe > 0)
-              bf = False
+              tk.MatchFound = False
+              tk.RowEnd = fe
+              tk.TemplateValue = nv.Value
               For fp = fb To fe
-                If (ct = 3 Or ValueCellSheet(sh, "D", fp) = "1") And _
-                  LCase(ValueCellSheet(sh, "E", fp)) <> "item" Then
-                  'Matching field. Run the template on these values.
-                  cv.SetValue "{ifFirst}", CStr(Not bf)
-                  cv.SetValue "{ifNotFirst}", CStr(bf)
-                  cv.SetValue "{ifLast}", CStr(fp >= fe)
-                  cv.SetValue "{ifNotLast}", CStr(fp < fe)
-                  cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
-                  bf = True
-                  UpdateFieldTags sh, fp, mv, fv
-                  ts = ResolveTags(nv.Value, fv)
-                  ts = ResolveParamTags(ts)
-                  ts = ResolveConditionTags(ts, cv)
-                  fc = fc & ts & vbCrLf
-                End If
+                tk.RowIndex = fp
+                fc = fc & HtmlProcessDataEntryItem(tk)
+'                If (ct = 3 Or ValueCellSheet(sh, CCfg.ColumnIsData, fp) = "1") And _
+'                  LCase(ValueCellSheet(sh, CCfg.ColumnSource, fp)) <> "item" Then
+'                  'Matching field. Run the template on these values.
+'                  cv.SetMatches "{ifEditor", "False"
+'                  cv.SetValue "{ifFirst}", CStr(Not bf)
+'                  cv.SetValue "{ifNotFirst}", CStr(bf)
+'                  cv.SetValue "{ifLast}", CStr(fp >= fe)
+'                  cv.SetValue "{ifNotLast}", CStr(fp < fe)
+'                  cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
+'                  ws = ValueCellSheet(sh, CCfg.ColumnEditor, fp)
+'                  If Len(ws) > 0 Then
+'                    cv.SetValue "{ifEditor" & ws & "}", "True"
+'                  End If
+'                  bf = True
+'                  UpdateFieldTags sh, fp, mv, fv
+'                  ts = ResolveTags(nv.Value, fv)
+'                  ts = ResolveParamTags(ts)
+'                  ts = ResolveConditionTags(ts, cv)
+'                  If Len(ts) > 0 Then
+'                    fc = fc & ts & vbCrLf
+'                  End If
+'                End If
               Next fp
             Next cp
           Case 4: 'Edit.
+            'Standalone Edit.
             For cp = 0 To cc - 1
               'Select the component sheet.
               Set sh = Sheets(ca(cp))
+              Set tk.Sheet = sh
               UpdateComponentTags sh, mv
               fb = 2
               'Last row for edit is probably early.
-              fe = GetEndRowNonBlank(sh, "O", fb)
+              fe = GetEndRowNonBlank(sh, CCfg.ColumnEditor, fb)
               cv.SetValue "{ifFieldCountGT0}", CStr(fe > 0)
-              bf = False
+              tk.MatchFound = False
+              tk.RowEnd = fe
+              tk.TemplateValue = nv.Value
               For fp = fb To fe
-                If Len(ValueCellSheet(sh, "O", fp)) > 0 Then
-                  'Matching field. Run the template on these values.
-                  cv.SetValue "{ifFirst}", CStr(Not bf)
-                  cv.SetValue "{ifNotFirst}", CStr(bf)
-                  cv.SetValue "{ifLast}", CStr(fp >= fe)
-                  cv.SetValue "{ifNotLast}", CStr(fp < fe)
-                  cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
-                  bf = True
-                  UpdateFieldTags sh, fp, mv, fv
-                  ts = ResolveTags(nv.Value, fv)
-                  ts = ResolveParamTags(ts)
-                  ts = ResolveConditionTags(ts, cv)
-                  fc = fc & ts & vbCrLf
-                End If
+                tk.RowIndex = fp
+                fc = fc & HtmlProcessEditItem(tk)
+'                ws = ValueCellSheet(sh, CCfg.ColumnEditor, fp)
+'                If Len(ws) > 0 Then
+'                  'Matching field. Run the template on these values.
+'                  cv.SetMatches "{ifEditor", "False"
+'                  cv.SetValue "{ifFirst}", CStr(Not bf)
+'                  cv.SetValue "{ifNotFirst}", CStr(bf)
+'                  cv.SetValue "{ifLast}", CStr(fp >= fe)
+'                  cv.SetValue "{ifNotLast}", CStr(fp < fe)
+'                  cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
+'                  cv.SetValue "{ifEditor" & ws & "}", "True"
+'                  bf = True
+'                  UpdateFieldTags sh, fp, mv, fv
+'                  ts = ResolveTags(nv.Value, fv)
+'                  ts = ResolveParamTags(ts)
+'                  ts = ResolveConditionTags(ts, cv)
+'                  If Len(ts) > 0 Then
+'                    fc = fc & ts & vbCrLf
+'                  End If
+'                End If
               Next fp
             Next cp
           Case 5: 'GridCol.
+            'Standalone Grid.
             'Non-default grid columns only.
             For cp = 0 To cc - 1
               'Select the component sheet.
               Set sh = Sheets(ca(cp))
+              Set tk.Sheet = sh
               UpdateComponentTags sh, mv
               fb = 2
               'Last row for edit is probably early.
-              fe = GetEndRowNonBlank(sh, "N", fb)
+              fe = GetEndRowNonBlank(sh, CCfg.ColumnGrid, fb)
               cv.SetValue "{ifFieldCountGT0}", CStr(fe > 0)
-              bf = False
+              tk.MatchFound = False
+              tk.RowEnd = fe
+              tk.TemplateValue = nv.Value
               For fp = fb To fe
-                If Len(ValueCellSheet(sh, "N", fp)) > 0 And _
-                  ValueCellSheet(sh, "V", fp) <> "1" Then
-                  'Matching field. Run the template on these values.
-                  cv.SetValue "{ifFirst}", CStr(Not bf)
-                  cv.SetValue "{ifNotFirst}", CStr(bf)
-                  cv.SetValue "{ifLast}", CStr(fp >= fe)
-                  cv.SetValue "{ifNotLast}", CStr(fp < fe)
-                  cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
-                  bf = True
-                  UpdateFieldTags sh, fp, mv, fv
-                  ts = ResolveTags(nv.Value, fv)
-                  ts = ResolveParamTags(ts)
-                  ts = ResolveConditionTags(ts, cv)
-                  fc = fc & ts & vbCrLf
-                End If
+                tk.RowIndex = fp
+                fc = fc & HtmlProcessGridColItem(tk)
+'                If Len(ValueCellSheet(sh, CCfg.ColumnGrid, fp)) > 0 And _
+'                  ValueCellSheet(sh, CCfg.ColumnIsDefault, fp) <> "1" Then
+'                  'Matching field. Run the template on these values.
+'                  cv.SetMatches "{ifEditor", "False"
+'                  cv.SetMatches "{ifFormat", "False"
+'                  cv.SetValue "{ifFirst}", CStr(Not bf)
+'                  cv.SetValue "{ifNotFirst}", CStr(bf)
+'                  cv.SetValue "{ifLast}", CStr(fp >= fe)
+'                  cv.SetValue "{ifNotLast}", CStr(fp < fe)
+'                  cv.SetValue "{ifReadOnly}", CStr(IsFieldReadOnly(sh, fp))
+'                  ws = ValueCellSheet(sh, CCfg.ColumnGridFormat, fp)
+'                  If Len(ws) > 0 Then
+'                    cv.SetValue "{ifFormatGrid}", "True"
+'                  End If
+'                  bf = True
+'                  UpdateFieldTags sh, fp, mv, fv
+'                  ts = ResolveTags(nv.Value, fv)
+'                  ts = ResolveParamTags(ts)
+'                  ts = ResolveConditionTags(ts, cv)
+'                  fc = fc & ts & vbCrLf
+'                End If
               Next fp
             Next cp
         End Select
@@ -1387,6 +1562,121 @@ Dim ws As String    'Working String.
 
 End Sub
 
+Private Function HtmlProcessDataEntryItem(token As FieldTokenItem) As String
+'Process a single Data or Entry Item on the Html Template.
+Dim rv As String    'Return Value.
+Dim ws As String    'Working String.
+
+  rv = ""
+  If (token.ComponentType = 3 Or _
+    ValueCellSheet(token.Sheet, CCfg.ColumnIsData, token.RowIndex) = "1") And _
+    LCase(ValueCellSheet(token.Sheet, CCfg.ColumnSource, _
+    token.RowIndex)) <> "item" Then
+    'Matching field. Run the template on these values.
+    token.CompareValues.SetMatches "{ifEditor", "False"
+    token.CompareValues.SetMatches "{ifFormat", "False"
+    token.CompareValues.SetValue "{ifFirst}", CStr(Not token.MatchFound)
+    token.CompareValues.SetValue "{ifNotFirst}", CStr(token.MatchFound)
+    token.CompareValues.SetValue "{ifLast}", _
+      CStr(token.RowIndex >= token.RowEnd)
+    token.CompareValues.SetValue "{ifNotLast}", _
+      CStr(token.RowIndex < token.RowEnd)
+    token.CompareValues.SetValue "{ifReadOnly}", _
+      CStr(IsFieldReadOnly(token.Sheet, token.RowIndex))
+    ws = ValueCellSheet(token.Sheet, CCfg.ColumnEditor, token.RowIndex)
+    If Len(ws) > 0 Then
+      token.CompareValues.SetValue "{ifEditor" & ws & "}", "True"
+    End If
+    token.MatchFound = True
+    UpdateFieldTags token.Sheet, token.RowIndex, _
+      token.ComponentValues, token.FieldValues
+    ws = ResolveTags(token.TemplateValue, token.FieldValues)
+    ws = ResolveParamTags(ws)
+    ws = ResolveConditionTags(ws, token.CompareValues)
+    If Len(ws) > 0 Then
+      rv = ws & vbCrLf
+    End If
+  End If
+  HtmlProcessDataEntryItem = rv
+
+End Function
+
+Private Function HtmlProcessEditItem(token As FieldTokenItem) As String
+'Process a single Edit Item on the Html Template.
+Dim rv As String    'Return Value.
+Dim ws As String    'Working String.
+
+  rv = ""
+  ws = ValueCellSheet(token.Sheet, CCfg.ColumnEditor, token.RowIndex)
+  If Len(ws) > 0 Then
+    'Matching field. Run the template on these values.
+    token.CompareValues.SetMatches "{ifEditor", "False"
+    token.CompareValues.SetMatches "{ifFormat", "False"
+    token.CompareValues.SetValue "{ifFirst}", CStr(Not token.MatchFound)
+    token.CompareValues.SetValue "{ifNotFirst}", CStr(token.MatchFound)
+    token.CompareValues.SetValue "{ifLast}", _
+      CStr(token.RowIndex >= token.RowEnd)
+    token.CompareValues.SetValue "{ifNotLast}", _
+      CStr(token.RowIndex < token.RowEnd)
+    token.CompareValues.SetValue "{ifReadOnly}", _
+      CStr(IsFieldReadOnly(token.Sheet, token.RowIndex))
+    token.CompareValues.SetValue "{ifEditor" & ws & "}", "True"
+    token.MatchFound = True
+    UpdateFieldTags token.Sheet, token.RowIndex, _
+      token.ComponentValues, token.FieldValues
+    ws = ResolveTags(token.TemplateValue, token.FieldValues)
+    ws = ResolveParamTags(ws)
+    ws = ResolveConditionTags(ws, token.CompareValues)
+    If Len(ws) > 0 Then
+      rv = ws & vbCrLf
+    End If
+  End If
+
+  HtmlProcessEditItem = rv
+
+End Function
+
+Private Function HtmlProcessGridColItem(token As FieldTokenItem) As String
+'Process a single Grid Column Item on the Html Template.
+Dim rv As String    'Return Value.
+Dim ws As String    'Working String.
+
+  rv = ""
+  If Len(ValueCellSheet(token.Sheet, CCfg.ColumnGrid, _
+    token.RowIndex)) > 0 And _
+    ValueCellSheet(token.Sheet, CCfg.ColumnIsDefault, _
+    token.RowIndex) <> "1" Then
+    'Matching field. Run the template on these values.
+    token.CompareValues.SetMatches "{ifEditor", "False"
+    token.CompareValues.SetMatches "{ifFormat", "False"
+    token.CompareValues.SetValue "{ifFirst}", CStr(Not token.MatchFound)
+    token.CompareValues.SetValue "{ifNotFirst}", CStr(token.MatchFound)
+    token.CompareValues.SetValue "{ifLast}", _
+      CStr(token.RowIndex >= token.RowEnd)
+    token.CompareValues.SetValue "{ifNotLast}", _
+      CStr(token.RowIndex < token.RowEnd)
+    token.CompareValues.SetValue "{ifReadOnly}", _
+      CStr(IsFieldReadOnly(token.Sheet, token.RowIndex))
+    ws = ValueCellSheet(token.Sheet, CCfg.ColumnGridFormat, _
+      token.RowIndex)
+    If Len(ws) > 0 Then
+      'Grid format has been specified.
+      token.CompareValues.SetValue "{ifFormatGrid}", "True"
+    End If
+    UpdateFieldTags token.Sheet, token.RowIndex, _
+      token.ComponentValues, token.FieldValues
+    ws = ResolveTags(token.TemplateValue, token.FieldValues)
+    ws = ResolveParamTags(ws)
+    ws = ResolveConditionTags(ws, token.CompareValues)
+    If Len(ws) > 0 Then
+      rv = ws & vbCrLf
+    End If
+  End If
+
+  HtmlProcessGridColItem = rv
+
+End Function
+
 Private Function IsComponentReadOnly(Sheet As Worksheet) As Boolean
 'Return a value indicating whether the specified component is read only.
 Dim lp As Integer   'List Position.
@@ -1394,7 +1684,7 @@ Dim rv As Boolean   'Return Value.
 
   lp = GetItemRow(Sheet)
   If lp > 0 Then
-    rv = (ValueCellSheet(Sheet, "P", lp) = "1")
+    rv = (ValueCellSheet(Sheet, CCfg.ColumnReadOnly, lp) = "1")
   End If
   IsComponentReadOnly = rv
 
@@ -1406,7 +1696,7 @@ Dim lp As Integer   'List Position.
 Dim rv As Boolean   'Return Value.
 
   If Index > 0 Then
-    rv = (ValueCellSheet(Sheet, "P", Index) = "1")
+    rv = (ValueCellSheet(Sheet, CCfg.ColumnReadOnly, Index) = "1")
   End If
   IsFieldReadOnly = rv
 
@@ -1472,9 +1762,13 @@ Private Function ResolveConditionTags(Source As String, _
 'If the condition if found and it evaluates to true, then
 ' the enclosing tags are removed.
 Dim lc As Integer     'List Count.
+Dim le As Integer     'List End.
 Dim lp As Integer     'List Position.
 Dim ni As NameValueItem
+Dim rl As Integer     'Return Value Length.
 Dim rv As String      'Return Value.
+Dim sl As String      'Left String.
+Dim sr As String      'Right String.
 Dim ws As String      'Working String.
 
   rv = Source
@@ -1496,8 +1790,30 @@ Dim ws As String      'Working String.
   Next lp
   Do While InStr(rv, "{if") > 0
     'No remaining conditional items were specified in the list.
-    ws = "\{if([^\}]*)\}.*?\{/if\1}"
-    rv = RegExReplace(rv, ws, "")
+    'The inline backreference replacement to nothing is not
+    ' working on this version of VBScript
+'    ws = "\{if([^\}]*)\}(.*)\{/if\1\}"
+'    rv = Replace(RegExReplace(Replace(rv, vbCrLf, "%^"), ws, ""), "%^", vbCrLf)
+    'Work-around. Manually check for and remove
+    ' all conditional braces still existing on the string.
+    'The following can be compressed, but provides detail for debugging.
+    'lp reassigned to character position.
+    'lc reassigned to count of characters.
+    lp = InStr(rv, "{if")
+    le = FindClosingElementEnd(rv, lp)
+    sl = ""
+    sr = ""
+    rl = Len(rv)
+    If le > 0 Then
+      'Starting and ending characters found. Remove.
+      If lp > 1 Then
+        sl = Left(rv, lp - 1)
+      End If
+      If rl > le Then
+        sr = Right(rv, rl - le)
+      End If
+      rv = sl & sr
+    End If
   Loop
   ResolveConditionTags = rv
 
@@ -1671,23 +1987,86 @@ Private Sub UpdateFieldTags(Sheet As Worksheet, Index As Integer, _
   FieldTags As NameValueCollection)
 'Update the list of tags for the specified field.
 Dim na As String    'Field Name.
+Dim rs As String    'Replacement String.
+Dim ws As String    'Working String.
 
   FieldTags.Clear
   FieldTags.AddRange ComponentTags
-  FieldTags.AddValue "{FieldName}", ValueCellSheet(Sheet, "A", Index)
-  FieldTags.AddValue "{FieldDataType}", ValueCellSheet(Sheet, "B", Index)
-  FieldTags.AddValue "{FieldDefaultValue}", ValueCellSheet(Sheet, "C", Index)
-  FieldTags.AddValue "{FieldNative}", ValueCellSheet(Sheet, "D", Index)
-  FieldTags.AddValue "{FieldSource}", ValueCellSheet(Sheet, "E", Index)
-  FieldTags.AddValue "{FieldTable}", ValueCellSheet(Sheet, "F", Index)
+  FieldTags.AddValue "{FieldAlias}", _
+    ValueCellSheet(Sheet, CCfg.ColumnAlias, Index)
+  FieldTags.AddValue "{FieldDataType}", _
+    ValueCellSheet(Sheet, CCfg.ColumnDataType, Index)
+  FieldTags.AddValue "{FieldDefaultValue}", _
+    ValueCellSheet(Sheet, CCfg.ColumnDefaultValue, Index)
+  FieldTags.AddValue "{FieldDescription}", _
+    ValueCellSheet(Sheet, CCfg.ColumnDescription, Index)
+  FieldTags.AddValue "{FieldDisplayName}", _
+    ValueCellSheet(Sheet, CCfg.ColumnDisplay, Index)
+  FieldTags.AddValue "{FieldEditorName}", _
+    ValueCellSheet(Sheet, CCfg.ColumnEditor, Index)
+  FieldTags.AddValue "{FieldGrid}", _
+    ValueCellSheet(Sheet, CCfg.ColumnGrid, Index)
+  FieldTags.AddValue "{FieldIsData}", _
+    ValueCellSheet(Sheet, CCfg.ColumnIsData, Index)
+  FieldTags.AddValue "{FieldIsDefault}", _
+    ValueCellSheet(Sheet, CCfg.ColumnIsDefault, Index)
+  FieldTags.AddValue "{FieldKeyName}", _
+    ValueCellSheet(Sheet, CCfg.ColumnKeyName, Index)
+  FieldTags.AddValue "{FieldKeyValue}", _
+    ValueCellSheet(Sheet, CCfg.ColumnKeyValue, Index)
+  FieldTags.AddValue "{FieldLength}", _
+    ValueCellSheet(Sheet, CCfg.ColumnLength, Index)
+  FieldTags.AddValue "{FieldName}", _
+    ValueCellSheet(Sheet, CCfg.ColumnName, Index)
+  FieldTags.AddValue "{FieldNative}", _
+    ValueCellSheet(Sheet, CCfg.ColumnIsData, Index)
+  FieldTags.AddValue "{FieldOverride}", _
+    ValueCellSheet(Sheet, CCfg.ColumnOverride, Index)
+  FieldTags.AddValue "{FieldReadOnly}", _
+    ValueCellSheet(Sheet, CCfg.ColumnReadOnly, Index)
   FieldTags.AddValue "{FieldSelect}", _
-    Replace(ValueCellSheet(Sheet, "G", Index), """", "\""")
-  FieldTags.AddValue "{FieldAlias}", ValueCellSheet(Sheet, "H", Index)
-  FieldTags.AddValue "{FieldKeyName}", ValueCellSheet(Sheet, "I", Index)
-  FieldTags.AddValue "{FieldKeyValue}", ValueCellSheet(Sheet, "J", Index)
+    Replace(ValueCellSheet(Sheet, CCfg.ColumnSelect, Index), """", "\""")
+  FieldTags.AddValue "{FieldSource}", _
+    ValueCellSheet(Sheet, CCfg.ColumnSource, Index)
   FieldTags.AddValue "{FieldSQLType}", _
-    GetScalarType(ValueCellSheet(Sheet, "B", Index))
-  FieldTags.AddValue "{FieldDisplayName}", ValueCellSheet(Sheet, "L", Index)
+    GetScalarType(ValueCellSheet(Sheet, CCfg.ColumnDataType, Index))
+  FieldTags.AddValue "{FieldTable}", _
+    ValueCellSheet(Sheet, CCfg.ColumnTable, Index)
+  FieldTags.AddValue "{FieldUIDisplay}", _
+    ValueCellSheet(Sheet, CCfg.ColumnUIDisplay, Index)
+  FieldTags.AddValue "{FieldUIKey}", _
+    ValueCellSheet(Sheet, CCfg.ColumnUIKey, Index)
+  FieldTags.AddValue "{FieldUISource}", _
+    ValueCellSheet(Sheet, CCfg.ColumnUISource, Index)
+  FieldTags.AddValue "{FieldUIUpdate}", _
+    ValueCellSheet(Sheet, CCfg.ColumnUIUpdate, Index)
+  FieldTags.AddValue "{FieldUIValue}", _
+    ValueCellSheet(Sheet, CCfg.ColumnUIValue, Index)
+  'When defined at the end, the member may refer to other field tags.
+  ws = ValueCellSheet(Sheet, CCfg.ColumnEditorFormat, Index)
+  'This item may refer to its own field.
+  FieldTags.AddValue "{FieldEditorFormat}", ws
+  If Len(ws) > 0 Then
+    rs = GetConfigValue("FormatEditor." & ws)
+    If Len(rs) > 0 Then
+      'A replacement is available.
+      ws = ResolveTags(rs, FieldTags)
+    End If
+  End If
+  FieldTags.SetValue "{FieldEditorFormat}", ws
+  ws = ValueCellSheet(Sheet, CCfg.ColumnGridFormat, Index)
+  'This item may refer to its own field.
+  FieldTags.AddValue "{FieldGridFormat}", ws
+  If Len(ws) > 0 Then
+    rs = GetConfigValue("FormatGrid." & ws)
+    If Len(rs) > 0 Then
+      'A replacement is available.
+      ws = ResolveTags(rs, FieldTags)
+    End If
+  End If
+  FieldTags.SetValue "{FieldGridFormat}", ws
+  
+
 
 End Sub
 

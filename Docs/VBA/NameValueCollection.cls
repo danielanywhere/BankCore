@@ -81,10 +81,34 @@ Public Sub Remove(Index As Variant)
 
 End Sub
 
+Public Sub SetMatches(ItemName As String, ItemValue As String)
+'Set the values of all partial or complete matches.
+Dim lc As Integer         'List Count.
+Dim lp As Integer         'List Position.
+Dim nv As NameValueItem   'Current Item.
+Dim tl As String          'Lowercase Value.
+
+  tl = LCase(ItemName)
+  lc = Count()
+  For lp = 1 To lc
+    Set nv = Item(lp)
+    If InStr(LCase(nv.Name), tl) > 0 Then
+      nv.Value = ItemValue
+    End If
+  Next lp
+
+End Sub
+
 Public Sub SetValue(ItemName As String, ItemValue As String)
 Dim rv As NameValueItem
 
   Set rv = Item(ItemName)
+  If rv Is Nothing Then
+    Set rv = New NameValueItem
+    rv.Name = ItemName
+    rv.Value = ItemValue
+    Add rv
+  End If
   If Not rv Is Nothing Then
     rv.Value = ItemValue
   End If
