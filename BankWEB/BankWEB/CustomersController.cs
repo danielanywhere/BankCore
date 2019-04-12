@@ -14,10 +14,10 @@ using BankViewModel;
 namespace BankWEB
 {
 	//*-------------------------------------------------------------------------*
-	//*	CustomerCollectionController																						*
+	//*	CustomersController																											*
 	//*-------------------------------------------------------------------------*
 	/// <summary>
-	/// Web API 2 Controller for Transient Customer objects.
+	/// Web API 2 Controller for transient customer objects.
 	/// </summary>
 	public class CustomersController : ApiController
 	{
@@ -53,7 +53,7 @@ namespace BankWEB
 		//*	_Constructor																													*
 		//*-----------------------------------------------------------------------*
 		/// <summary>
-		/// Create a new Instance of the CustomerCollectionController Item.
+		/// Create a new Instance of the CustomersController Item.
 		/// </summary>
 		public CustomersController()
 		{
@@ -147,6 +147,47 @@ namespace BankWEB
 		//*-----------------------------------------------------------------------*
 
 		//*-----------------------------------------------------------------------*
+		//*	Lookup																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the identifying information for a single customer record.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Return the ID and default text of specified customer.
+		/// </para>
+		/// </remarks>
+		public IDTextItem Lookup(int id)
+		{
+			CustomerItem ci = mCustomers.First(r => r.CustomerID == id);
+			IDTextItem di = IDTextItem.Assign(ci, "Name", "CustomerID");
+
+			return di;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
+		//*	Lookups																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the collection of ID lookups for this entity.
+		/// </summary>
+		/// <remarks>
+		/// Return the default Field and default text value for all customers.
+		/// </remarks>
+		public IDTextCollection Lookups()
+		{
+			IDTextCollection rv = new IDTextCollection();
+			if(mCustomers.Count() == 0)
+			{
+				mCustomers.Load();
+			}
+			rv.AddRange(mCustomers, "CustomerID", "Name");
+			return rv;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
 		//*	PostCustomer																													*
 		//*-----------------------------------------------------------------------*
 		/// <summary>
@@ -164,7 +205,7 @@ namespace BankWEB
 				return BadRequest(ModelState);
 			}
 
-	
+
 			customer = mCustomers.AddOrUpdate(customer);
 			mCustomers.SaveChanges();
 
@@ -198,7 +239,6 @@ namespace BankWEB
 			return StatusCode(HttpStatusCode.NoContent);
 		}
 		//*-----------------------------------------------------------------------*
-
 
 	}
 	//*-------------------------------------------------------------------------*

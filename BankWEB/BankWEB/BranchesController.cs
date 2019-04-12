@@ -147,6 +147,47 @@ namespace BankWEB
 		//*-----------------------------------------------------------------------*
 
 		//*-----------------------------------------------------------------------*
+		//*	Lookup																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the identifying information for a single branch record.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Return the ID and default text of specified branch.
+		/// </para>
+		/// </remarks>
+		public IDTextItem Lookup(int id)
+		{
+			BranchItem ci = mBranches.First(r => r.BranchID == id);
+			IDTextItem di = IDTextItem.Assign(ci, "Name", "BranchID");
+
+			return di;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
+		//*	Lookups																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the collection of ID lookups for this entity.
+		/// </summary>
+		/// <remarks>
+		/// Return the default Field and default text value for all branches.
+		/// </remarks>
+		public IDTextCollection Lookups()
+		{
+			IDTextCollection rv = new IDTextCollection();
+			if(mBranches.Count() == 0)
+			{
+				mBranches.Load();
+			}
+			rv.AddRange(mBranches, "BranchID", "Name");
+			return rv;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
 		//*	PostBranch																														*
 		//*-----------------------------------------------------------------------*
 		/// <summary>

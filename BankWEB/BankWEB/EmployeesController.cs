@@ -147,6 +147,47 @@ namespace BankWEB
 		//*-----------------------------------------------------------------------*
 
 		//*-----------------------------------------------------------------------*
+		//*	Lookup																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the identifying information for a single employee record.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Return the ID and default text of specified employee.
+		/// </para>
+		/// </remarks>
+		public IDTextItem Lookup(int id)
+		{
+			EmployeeItem ci = mEmployees.First(r => r.EmployeeID == id);
+			IDTextItem di = IDTextItem.Assign(ci, "DisplayName", "EmployeeID");
+
+			return di;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
+		//*	Lookups																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the collection of ID lookups for this entity.
+		/// </summary>
+		/// <remarks>
+		/// Return the default Field and default text value for all employees.
+		/// </remarks>
+		public IDTextCollection Lookups()
+		{
+			IDTextCollection rv = new IDTextCollection();
+			if(mEmployees.Count() == 0)
+			{
+				mEmployees.Load();
+			}
+			rv.AddRange(mEmployees, "EmployeeID", "DisplayName");
+			return rv;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
 		//*	PostEmployee																													*
 		//*-----------------------------------------------------------------------*
 		/// <summary>

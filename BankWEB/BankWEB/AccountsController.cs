@@ -147,6 +147,47 @@ namespace BankWEB
 		//*-----------------------------------------------------------------------*
 
 		//*-----------------------------------------------------------------------*
+		//*	Lookup																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the identifying information for a single account record.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Return the ID and default text of specified account.
+		/// </para>
+		/// </remarks>
+		public IDTextItem Lookup(int id)
+		{
+			AccountItem ci = mAccounts.First(r => r.AccountID == id);
+			IDTextItem di = IDTextItem.Assign(ci, "AccountID", "AccountID");
+
+			return di;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
+		//*	Lookups																																*
+		//*-----------------------------------------------------------------------*
+		/// <summary>
+		/// Return the collection of ID lookups for this entity.
+		/// </summary>
+		/// <remarks>
+		/// Return the default Field and default text value for all accounts.
+		/// </remarks>
+		public IDTextCollection Lookups()
+		{
+			IDTextCollection rv = new IDTextCollection();
+			if(mAccounts.Count() == 0)
+			{
+				mAccounts.Load();
+			}
+			rv.AddRange(mAccounts, "AccountID", "AccountID");
+			return rv;
+		}
+		//*-----------------------------------------------------------------------*
+
+		//*-----------------------------------------------------------------------*
 		//*	PostAccount																														*
 		//*-----------------------------------------------------------------------*
 		/// <summary>

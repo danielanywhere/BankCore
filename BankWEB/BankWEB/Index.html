@@ -617,6 +617,39 @@
      }
     });
 
+    // Lookup Models.
+    var customerLookupModel = new kendo.data.Model.define({
+     id: "CustomerID",
+     fields: {
+      CustomerID: {},
+      Name: {}
+     }
+    });
+
+    var accountLookupModel = new kendo.data.Model.define({
+     id: "AccountID",
+     fields: {
+      AccountID: {},
+      AccountID: {}
+     }
+    });
+
+    var branchLookupModel = new kendo.data.Model.define({
+     id: "BranchID",
+     fields: {
+      BranchID: {},
+      Name: {}
+     }
+    });
+
+    var employeeLookupModel = new kendo.data.Model.define({
+     id: "EmployeeID",
+     fields: {
+      EmployeeID: {},
+      DisplayName: {}
+     }
+    });
+
     // *** DataSource Definitions ***
     // Notice that an update won't occur on this DataSource if a model with
     // an id: hasn't been defined. In this case, id: "CustomerID" is defined
@@ -664,6 +697,51 @@
      transport: {
       read: {
        url: "api/Employees/",
+       dataType: "json"
+      }
+     }
+    });
+
+    // DataSources for Lookup Models.
+    var customerLookupData = new kendo.dataDataSource({
+     schema: customerLookupModel,
+     batch: true,
+     transport: {
+      read: {
+       url: "api/CustomerLookups/",
+       dataType: "json"
+      }
+     }
+    });
+
+    var accountLookupData = new kendo.dataDataSource({
+     schema: accountLookupModel,
+     batch: true,
+     transport: {
+      read: {
+       url: "api/AccountLookups/",
+       dataType: "json"
+      }
+     }
+    });
+
+    var branchLookupData = new kendo.dataDataSource({
+     schema: branchLookupModel,
+     batch: true,
+     transport: {
+      read: {
+       url: "api/BranchLookups/",
+       dataType: "json"
+      }
+     }
+    });
+
+    var employeeLookupData = new kendo.dataDataSource({
+     schema: employeeLookupModel,
+     batch: true,
+     transport: {
+      read: {
+       url: "api/EmployeeLookups/",
        dataType: "json"
       }
      }
@@ -1356,6 +1434,38 @@
      depth: "year",
      format: "MM/dd/yyyy",
      dateInput: true
+    });
+
+    // ComboBox Controls.
+    $("#accountBranchID").kendoComboBox(
+    {
+     dataTextField: "Name",
+     dataValueField: "BranchID",
+     dataSource: "BranchLookupData",
+     change: function(e)
+     {
+      UpdateBranchName(this, Branches, BranchLookupData, "BranchID");
+     }
+    });
+    $("#accountCustomerID").kendoComboBox(
+    {
+     dataTextField: "Name",
+     dataValueField: "CustomerID",
+     dataSource: "CustomerLookupData",
+     change: function(e)
+     {
+      UpdateCustomerName(this, CustomerLookupData, Customers, "CustomerID");
+     }
+    });
+    $("#accountEmployeeID").kendoComboBox(
+    {
+     dataTextField: "DisplayName",
+     dataValueField: "EmployeeID",
+     dataSource: "EmployeeLookupData",
+     change: function(e)
+     {
+      UpdateEmployeeName(this, Employees, EmployeeLookupData, "EmployeeID");
+     }
     });
 
     // Set additional control behaviors.

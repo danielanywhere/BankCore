@@ -77,6 +77,7 @@
     <Compile Include="Customer.cs" />
     <Compile Include="Employee.cs" />
     <Compile Include="ExpressionEvaluator.cs" />
+    <Compile Include="IDText.cs" />
     <Compile Include="PersonDisplayName.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="bnkAccount.cs">

@@ -235,8 +235,8 @@ namespace BankViewModel
 		//*************************************************************************
 		private static List<string> BranchItemPropertyNames =
 			new List<string>(
-			new string[] { "BranchID", "BranchTicket", "Name", "Address", "City",
-			"State", "ZipCode" });
+			new string[] { "BranchID", "BranchTicket",
+				"Name", "Address", "City", "State", "ZipCode" });
 
 		//*************************************************************************
 		//*	Protected																															*
