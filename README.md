@@ -40,7 +40,8 @@ Following are the sheet names currently available in the Excel file.
 - **Configuration**. Config values for the file.
 - **TemplateObjectCollection**. The code template for creating the Entity Framework hosting Item and Colllection classes for the ViewModel layer.
 - **TemplateObjectController**. The code template for creating the Web API 2 REST controllers for the ViewModel and Web View layers.
-- **TemplateHTMLSinglePageApp**. The code template for creating the Index.html Single Page Web Application.
+- **TemplateHTMLSinglePageApp**. The code template for creating the Index.html Single Page Web Application. <span style="color:#7f0000">DEP:20190419.1244 - The language for this sheet has been changed and work is currently
+underway to update the related macros.</span>
 - **ComponentAccount**. Declaration inventory for creating Account Data, Model, ViewModel, and View objects.
 - **ComponentBranch**. Declaration inventory for creating Branch Data, Model, ViewModel, and View objects.
 - **ComponentCustomer**. Declaration inventory for creating Customer Data, Model, ViewModel, and View objects.
@@ -51,7 +52,7 @@ Following are the sheet names currently available in the Excel file.
 This project demonstrates the successful integration of the following infrastructure and techniques.
 
 - Data / JSON
-- Data / SQL Server 2014
+- Data / SQL Server 2017
 - Data / XML
 - Desktop / Excel-Driven Development Automation (EDDA)
 - Desktop / Microsoft VisualBasic for Applications (VBA6)
@@ -64,8 +65,8 @@ This project demonstrates the successful integration of the following infrastruc
 - Programming / MVVM
 - Scripting / JavaScript
 - Scripting / JQuery
+- Web / CSS3
 - Web / HTML5
-- Web / KendoUI.MVVM
 
 
 
@@ -73,11 +74,9 @@ This project demonstrates the successful integration of the following infrastruc
 
 As mentioned, this library isn&#39;t quite finished yet. Following is a short list of items to be completed for the sample to be considered 100%.
 
-- **Evaluation**.
-  - o	For evaluation purposes, publish the BankWEB project on the public server to allow guest use.
 - **BankWorksheet.xlsm**.
-  - Wire-up of additional control types and display formats according to the specified entries.
   - Include manual property override values into the field tag rendering sequence for properties on a component.
+	- Rewrite the macros for HTML Single Page Application to support the new language directives.
   - Define additional components.
   - Transfer SQL table creation and maintenance macros from another spreadsheet where it has already been tested, and link the macros to the Component\* sheet columns layout to allow for single point of definition, start to finish.
 - **BankViewModel**.
@@ -85,5 +84,5 @@ As mentioned, this library isn&#39;t quite finished yet. Following is a short li
 - **BankWEB**.
   - Add and integrate controllers and controls as more features are available.
 - **BankWPF**.
-  - The BankWPF project has not yet been templated, so create the basic Excel templates.
+  - The BankWPF project has not yet been templated. The basic Excel templates need to be created.
 

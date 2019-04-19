@@ -1,0 +1,122 @@
+﻿<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<!--
+		There are multiple problems with SlickGrid, the first of which
+		is that it relies upon jquery.event.drag from ThreeDubMedia,
+		which hasn't worked since jQuery version 3.1.1 due to
+		jQuery's removal of $event.fixHooks. One GitHub member attempted
+		to check in some fixes on March 15, 2014, but so far, has not
+		been allowed.
+
+		None of the other problems need to be mentioned until the
+		above dependency is resolved.
+	-->
+ <title>BankCore featuring jQuery, SlickGrid, ASP.NET and REST</title>
+ <!-- Base formatting. -->
+ <link type="text/css" href="../Default.css" rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="slickgrid/slick-default-theme.css" />
+	<link rel="stylesheet" type="text/css" href="slickgrid/slick.grid.css" />
+	<link rel="stylesheet" type="text/css" href="../scripts/jquery-ui-1.12.1.d1/jquery-ui.css">
+	<script src="../scripts/jquery-3.3.1.js"></script>
+	<script src="../scripts/jquery-ui-1.12.1.d1/jquery-ui.js"></script>
+
+	<script src="Local02ViewModel.js"></script>
+</head>
+<body>
+ <div id="tabs">
+		<ul>
+			<li><a href="#Customers"><span>Customers</span></a></li>
+			<li><a href="#Accounts"><span>Accounts</span></a></li>
+			<li><a href="#Branches"><span>Branches</span></a></li>
+			<li><a href="#Employees"><span>Employees</span></a></li>
+		</ul>
+
+		<!-- Customers -->
+		<div id="Customers">
+			<p class="top0">Select a customer to edit or view.
+				Use the textboxes in the top row to filter.
+			</p>
+			<div id="grdCustomers"></div>
+		</div>
+		<!-- /Customers -->
+		<!-- Accounts -->
+		<div id="Accounts">
+			<p class="top0">Select an account to edit or view.
+				Use the textboxes in the top row to filter.
+			</p>
+			<div id="grdAccounts"></div>
+		</div>
+		<!-- /Accounts -->
+		<!-- Branches -->
+		<div id="Branches">
+			<p>Select a branch to edit or view.</p>
+			<div id="grdBranches"></div>
+		</div>
+		<!-- /Branches -->
+		<!-- Employees -->
+		<div id="Employees">
+			<p>Select an employee to edit or view.</p>
+			<div id="grdEmployees"></div>
+		</div>
+		<!-- /Employees -->
+	</div>
+</body>
+<script>
+	$(document).ready(function()
+	{
+		$("#tabs").tabs({
+			activate: function(event, ui)
+			{
+				switch(ui.newPanel.attr('id'))
+				{
+					case "Accounts":
+						console.log("Tab Selected: Accounts...");
+						break;
+					case "Branches":
+					case "Customers":
+					case "Employees":
+						break;
+				}
+			}
+		});
+		//	Views.
+		// //	Accounts view.
+		// $("#grdAccounts").jsGrid({
+		// 	// height: "70vh",
+		// 	width: "100%",
+
+		// 	filtering: true,
+		// 	editing: true,
+		// 	sorting: true,
+		// 	paging: true,
+		// 	autoload: true,
+
+		// 	// pageSize: 4,
+		// 	// pageButtonCount: 5,
+
+		// 	deleteConfirm: "Do you really want to delete the account?",
+
+		// 	controller: accountsViewModel,
+
+		// 	fields: [
+		// 		{ name: "AccountTicket", type: "text", width: 150 },
+		// 		{ name: "CustomerID", title: "Customer", type: "select", items: customersViewModel.customers, valueField: "CustomerID", textField: "Name", width: 150 },
+		// 		{ name: "AccountStatus", title: "Account Status", type: "select", items: accountsViewModel.accountStates, valueField: "StateName", textField: "StateName" },
+		// 		{ name: "BalanceAvailable", title: "Balance Available", type: "number" },
+		// 		{ name: "BalancePending", title: "Balance Pending", type: "number" },
+		// 		{ name: "DateOpened", title: "Date Opened", type: "text" },
+		// 		{ name: "DateClosed", title: "Date Closed", type: "text" },
+		// 		{ name: "DateLastActivity", title: "DateLastActivity", type: "text" },
+		// 		// { name: "BranchID", type: "select", width: 200 },
+		// 		//	{ name: "EmployeeID", type: "select"  },
+		// 		{ type: "control" }
+		// 	]
+		// });
+		//	Customers view.
+		customersViewModel.grid = new Slick.Grid("#grdCustomers",
+			customersViewModel.customers, customersViewModel.columns,
+			customersViewModel.options);
+	});
+</script>
+</html>

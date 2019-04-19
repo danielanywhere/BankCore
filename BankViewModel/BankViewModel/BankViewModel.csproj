@@ -73,6 +73,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>BankModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="BankModelCollection.cs" />
     <Compile Include="Branch.cs" />
     <Compile Include="Customer.cs" />
     <Compile Include="Employee.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="TransactionType.cs" />
     <Compile Include="Transient.cs" />
     <Compile Include="ViewModelBase.cs" />
+    <Compile Include="WebSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="BankModel.edmx">

@@ -1,65 +1,192 @@
-﻿body, td {
- font-family: Calibri, 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+﻿body, td
+{
+ font-family: Calibri, 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
-.hidden {
+.hidden
+{
  display: none;
 }
 
-div.backButton {
+div.backButton
+{
  font-size: 14pt;
  font-weight: bold;
  vertical-align: middle;
  cursor: pointer;
 }
-div.backButton a {
+div.backButton a
+{
  margin-left: 24px;
 }
-div.backButton a img {
+div.backButton a img
+{
  height: 32px;
 }
-div.backButton h2 {
+div.backButton h2
+{
  font-size: 24pt;
  font-weight: bold;
 }
-div.formBody {
+div.columnVisibility
+{
+	padding: 16px;
+	border: 2px solid #a3d0e4;
+	border-radius: 16px;
+	margin-bottom: 12pt;
+}
+div.columnVisibility .head
+{
+	font-size: 16pt;
+	font-weight: bold;
+	margin-bottom: 12pt;
+}
+div.columnVisibility label.container
+{
+	display: inline-block;
+	position: relative;
+	padding-left: 35px;
+	margin-left: 24px;
+	margin-bottom: 12px;
+	cursor: pointer;
+	font-size: 22px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+div.columnVisibility label.container input
+{
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+	height: 0;
+	width: 0;
+}
+div.columnVisibility label.container input:checked ~ .checkmark
+{
+	background-color: #1c94c4;
+}
+div.columnVisibility label.container input:checked ~ .checkmark:after
+{
+	display: block;
+}
+div.columnVisibility label.container:hover
+{
+	color: #1c94c4;
+}
+div.columnVisibility label.container:hover input ~ .checkmark
+{
+	background-color: #cccccc;
+}
+div.columnVisibility label.container .checkmark
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 25px;
+	width: 25px;
+	background-color: #eeeeee;
+}
+div.columnVisibility label.container .checkmark:after
+{
+	content: "";
+	position: absolute;
+	display: none;
+}
+div.columnVisibility label.container .checkmark:after
+{
+	left: 9px;
+	top: 5px;
+	width: 5px;
+	height: 10px;
+	border: solid white;
+	border-width: 0 3px 3px 0;
+	-webkit-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	transform: rotate(45deg);
+}
+div.formBody
+{
  display: inline-block;
  border-radius: 24px;
  border: 2px solid #a3d0e4;
  background-color: #daedf5;
  padding: 10px;
 }
-div.record-icon {
+div.record-icon
+{
  display: inline-block;
  background-size: 24px 24px;
  background-repeat: no-repeat;
  width: 24px;
  height: 24px;
 }
-div.record-name {
+div.record-name
+{
  display: inline-block;
  margin-left: 24px;
 }
+div.rowFilter
+{
+	padding: 16px;
+	border: 2px solid #a3d0e4;
+	border-radius: 16px;
+	margin-bottom: 12pt;
+}
+div.rowFilter p.small
+{
+	font-size: 10pt;
+	margin: 0;
+	margin-bottom: 8pt;
+}
+div.rowFilter .head
+{
+	font-size: 16pt;
+	font-weight: bold;
+	margin-bottom: 12pt;
+}
+div.rowFilter label.container
+{
+	display: inline-block;
+	position: relative;
+	padding-left: 35px;
+	margin-bottom: 12px;
+	cursor: pointer;
+	font-size: 22px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
 
-table.formFields {
+table.formFields
+{
  border: 0;
  border-collapse: collapse;
 }
 
 
-input.k-textbox {
+input.k-textbox
+{
  margin: 10px auto 10px auto;
  width: 300px;
 }
-.rdonly {
+.rdonly
+{
  background-color: #f0f0f0 !important;
 }
-.tpanel {
+.tpanel
+{
  display: block;
  font-size: 10pt;
  color: #909090;
  padding: 0;
  margin: 0;
 }
-.tcontent {
+
+.top0
+{
+	margin-top: 0;
+	padding-top: 0;
 }

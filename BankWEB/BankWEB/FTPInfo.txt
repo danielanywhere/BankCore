@@ -2,12 +2,10 @@ Areas/HelpPage/HelpPage.css
 Areas/HelpPage/Views/*
 bin/*
 Content/*
-fonts/*
 Images/*
-js/*
-Scripts/*
+scripts/*
 styles/*
-Views/*
+!Views/*
 Default.css
 favicon.ico
 Global.asax

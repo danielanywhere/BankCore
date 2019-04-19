@@ -17,7 +17,7 @@ namespace SimpleExpressionEvaluator
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// Original project was written by Giorgi Dalakishvili is found at 
+	/// The original project was written by Giorgi Dalakishvili and is found at 
 	/// <a href="https://github.com/Giorgi/Math-Expression-Evaluator">
 	/// Giorgi / Math-Expression-Evaluator</a>. It can be installed as a NuGet
 	/// package with the name of Math-Expression-Evaluator in Visual Studio

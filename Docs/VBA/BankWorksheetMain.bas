@@ -2,7 +2,7 @@ Attribute VB_Name = "BankWorksheetMain"
 Option Explicit
 
 'BankWorksheetMain.bas
-'Copyright (c). 2018. Daniel Patterson, MCSD (DanielAnywhere)
+'Copyright (c). 2018, 2019. Daniel Patterson, MCSD (DanielAnywhere)
 
 Private Const ScopePrivate = 0
 Private Const ScopeProtected = 1
@@ -363,13 +363,6 @@ Public Sub CreateObjectCollectionCode()
 
 End Sub
 
-Public Sub CreateObjectControllerCode()
-'Use the TemplateObjectController sheet to create code for the Component on
-' the selected sheet.
-  CodeFromTemplate Sheets("TemplateObjectController")
-
-End Sub
-
 Public Sub CreateSinglePageAppHTML()
 'Use the TemplateHTMLSinglePageApp sheet to create HTML for all Component sheets.
 
@@ -547,6 +540,20 @@ Dim ts As Object          'Text Stream.
       Set fso = Nothing
     End If
   End If
+
+End Sub
+
+Public Sub CreateWebAPI2LookupControllerCode()
+'Use the TemplateLookupController sheet to create code for the Component on
+' the selected sheet.
+  CodeFromTemplate Sheets("TemplateLookupController")
+
+End Sub
+
+Public Sub CreateWebAPI2ObjectControllerCode()
+'Use the TemplateObjectController sheet to create code for the Component on
+' the selected sheet.
+  CodeFromTemplate Sheets("TemplateObjectController")
 
 End Sub
 
@@ -780,6 +787,55 @@ Dim tl As String  'Lowercase Value.
 
 End Function
 
+Public Sub GetJSON()
+'Return JSON data for the selected Table sheet.
+
+  ClipBoard_SetData ToJSONSheet(ActiveSheet)
+  MsgBox "JSON Data for the selected sheet " & _
+    "has been copied to the clipboard...", vbOKOnly, "Get JSON"
+
+End Sub
+
+Public Sub GetJSONLookup()
+'Return JSON lookup data for the selected Table sheet.
+Dim ci(2) As Integer  'Column Index Array.
+Dim cn(2) As String   'Column Name Array.
+Dim ld() As String    'Lookup Data.
+Dim sn As String      'Sheet Name.
+
+  If Not ActiveSheet Is Nothing Then
+    sn = ActiveSheet.Name
+    If Len(sn) > 5 And LCase(Left(sn, 5)) = "table" Then
+      sn = Right(sn, Len(sn) - 5)
+    End If
+    cn(1) = InputBox("ID Column Name: ", _
+      "Get JSON Lookup Data", sn & "ID")
+    cn(2) = InputBox("Text Column Name: ", _
+      "Get JSON Lookup Data", sn & "Ticket")
+    ci(1) = GetColumnIndex(ActiveSheet, cn(1))
+    ci(2) = GetColumnIndex(ActiveSheet, cn(2))
+    If ci(1) > 0 And ci(2) > 0 Then
+      'ID and Text columns found.
+      ld = ToTableArray(ActiveSheet, cn, ci)
+      ClipBoard_SetData ToJSONArray(ld)
+      MsgBox "JSON Lookup Data for the selected sheet " & _
+        "has been copied to the clipboard...", vbOKOnly, "Get JSON"
+    End If
+  End If
+
+End Sub
+
+Private Function GetIDFieldName(Sheet As Worksheet) As String
+'Return the ID field name that uniquely identifies the component.
+Dim rv As String  'Return Value.
+
+  If LCase(Left(Sheet.Name, 9)) = "component" Then
+    rv = Right(Sheet.Name, Len(Sheet.Name) - 9) & "ID"
+  End If
+  GetIDFieldName = rv
+
+End Function
+
 Private Function GetIndefiniteArticle(Value As String) As String
 'Return the indefinite article for the caller's word.
 ' The choice of 'a' or 'an' is determined not only by the
@@ -876,7 +932,7 @@ Dim rv As String  'Return Value.
 
 End Function
 
-Private Function GetParameter(Value As String, Index As Integer) As String
+Public Function GetParameter(Value As String, Index As Integer) As String
 'Return the parameter at the specified index.
 Dim id As Integer 'Arrays are 0-based.
 Dim pl As Integer 'Left Parameter Position.
@@ -1051,8 +1107,14 @@ Private Sub HtmlFromTemplate(Target As Worksheet)
 ' for every component in the group.
 'A component group is repeated only after all of the members in
 ' the group have been resolved.
+'The Condition(entry,compare) directive is used to compare a resolvable
+' field variable with one or more possible settings.
+' For example, Condition(FieldDataType,"string") will be used if
+' the data type for the current column definition is "string",
+' and will be skipped otherwise.
 Dim bc As Boolean   'Flag - Continue.
 Dim bf As Boolean   'Flag - Found.
+dim bv as Boolean		'Flag - Continue on Value.
 Dim ca() As String  'Component Names.
 Dim cc As Integer   'Component Count.
 Dim cp As Integer   'Component Position.
@@ -1074,8 +1136,12 @@ Dim mp As Integer   'Member Position.
 Dim mv As New NameValueCollection 'Component Values.
 Dim nv As NameValueTypeItem   'Working Name/Value Item.
 Dim pi As NameValueTypeCollection 'Current repeater group.
+dim pl as Integer		'Left position.
+dim pr as Integer		'Right position.
 Dim pv As New GroupNameValueTypeCollection  'Repeater groups.
 Dim rp As Integer   'Reference Row Position.
+dim sa() as string	'String array.
+dim sf() as string	'Field name array.
 Dim sh As Worksheet 'Working Sheet.
 Dim st As Worksheet 'Template Sheet.
 Dim tc As Integer   'Template Count.
@@ -1084,6 +1150,8 @@ Dim tl As String    'Lowercase Value.
 Dim tp As Integer   'Template Row Position.
 Dim ts As String    'Transitory Working String.
 Dim tv As NameValueTypeCollection 'Template Values.
+dim vl as string		'Left value.
+dim vr as string		'Right value.
 Dim ws As String    'Working String.
 
   bc = True
@@ -1405,19 +1473,50 @@ Dim ws As String    'Working String.
                   End Select
                 Else
                   'Normal line. Treat as component repeat.
-                  cv.SetMatches "{ifEditor", "False"
-                  cv.SetMatches "{ifFormat", "False"
-                  cv.SetValue "{ifFieldCountGT0}", _
-                    CStr(GetEndRow(sh, CCfg.ColumnName, 3) > 0)
-                  cv.SetValue "{ifFirst}", CStr(cp = 0)
-                  cv.SetValue "{ifNotFirst}", CStr(cp <> 0)
-                  cv.SetValue "{ifLast}", CStr(cp >= cc - 1)
-                  cv.SetValue "{ifNotLast}", CStr(cp < cc - 1)
-                  cv.SetValue "{ifReadOnly}", CStr(IsComponentReadOnly(sh))
-                  ts = ResolveTags(nv.Value, mv)
-                  ts = ResolveParamTags(ts)
-                  ts = ResolveConditionTags(ts, cv)
-                  fc = fc & ts & vbCrLf
+                  'Check first to see if the line matches the condition.
+                  if instr(tl, "condition(") > 0 then
+                    'A row condition is being specified.
+                    ws = trim(mid(ws, 11, len(ws) - 2))
+                    pl = instr(ws, "[")
+                    pr = instr(ws, "]")
+                    if pl > 0 and pr > 0 then
+                      ws = left(ws, pl - 1) & _
+                        replace(mid(ws, pl, pr - pl), ",", ";") & _
+                        right(ws, len(ws) - pr)
+                    end if
+                    sa = split(ws, ",");
+                    if ubound(sa) > 0 then
+                      sb = split(sa(1), ";")
+                    Else
+                      redim sb, 0
+                      sb(0) = ""
+                    end if
+                    bv = false
+                    vl = lcase(ResolveTags("{" & sa(0) & "}", fv))
+                    pr = ubound(sb)
+                    for pl = 0 to pr
+                      vr = lcase(sb(pl))
+                      if vr = vr then
+                        bv = true
+                        exit for
+                      end if
+                    next pl
+                  end if
+                  If(bv) Then
+                    cv.SetMatches "{ifEditor", "False"
+                    cv.SetMatches "{ifFormat", "False"
+                    cv.SetValue "{ifFieldCountGT0}", _
+                      CStr(GetEndRow(sh, CCfg.ColumnName, 3) > 0)
+                    cv.SetValue "{ifFirst}", CStr(cp = 0)
+                    cv.SetValue "{ifNotFirst}", CStr(cp <> 0)
+                    cv.SetValue "{ifLast}", CStr(cp >= cc - 1)
+                    cv.SetValue "{ifNotLast}", CStr(cp < cc - 1)
+                    cv.SetValue "{ifReadOnly}", CStr(IsComponentReadOnly(sh))
+                    ts = ResolveTags(nv.Value, mv)
+                    ts = ResolveParamTags(ts)
+                    ts = ResolveConditionTags(ts, cv)
+                    fc = fc & ts & vbCrLf
+                  End If
                 End If
               Next mp
             Next cp
@@ -1702,7 +1801,7 @@ Dim rv As Boolean   'Return Value.
 
 End Function
 
-Private Function NameValues(columnIndex As Integer, currentRow As Integer) As String
+Private Function NameValues(ColumnIndex As Integer, currentRow As Integer) As String
 'Return the string of Name/Value pairs starting at the specified column index.
 Dim cp As Long      'Column Position.
 Dim nm As String    'Name/Value Name.
@@ -1710,8 +1809,8 @@ Dim nv As String    'Name/Value Value.
 Dim rv As String    'Return Value.
 
   rv = ""
-  If columnIndex > 0 And currentRow > 0 Then
-    cp = columnIndex
+  If ColumnIndex > 0 And currentRow > 0 Then
+    cp = ColumnIndex
     Do While Len(ValueCell(ColToChar(cp), currentRow)) > 0
       nm = ValueCell(ColToChar(cp), currentRow)
       nv = ValueCell(ColToChar(cp + 1), currentRow)
@@ -1962,6 +2061,7 @@ End Function
 
 Private Sub UpdateComponentTags(Sheet As Worksheet, List As NameValueCollection)
 'Update the list of tags for the specified component.
+Dim ab As String    'Abbreviation.
 Dim na As String    'Component Name.
 
   List.Clear
@@ -1976,8 +2076,15 @@ Dim na As String    'Component Name.
     List.AddValue "{T}", Chr(9)
     List.AddValue "{Scope}", "Public"
     List.AddValue "{AAn}", GetIndefiniteArticle(na)
+    ab = ValueCellSheet(Sheet, CCfg.ColumnAbbrev3, 2)
+    List.AddValue "{Abbrev3}", ab
+    List.AddValue "{LAbbrev3}", LCase(ab)
+    'Name of the Default Text Field.
     List.AddValue "{DefaultFieldName}", GetDefaultFieldName(Sheet)
+    'Label of the Default Text Field.
     List.AddValue "{DefaultFieldDisplayName}", GetDefaultFieldDisplayName(Sheet)
+    'Name of the Identification Field.
+    List.AddValue "{IDFieldName}", GetIDFieldName(Sheet)
   End If
 
 End Sub

@@ -1,0 +1,224 @@
+﻿<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!--
+	The problem with jsGrid is that it preloads referencial data from the
+	source, instead of using it as a reference.
+	When data is changed on its primary tab, all consumers of that data
+	should be updated upon refresh, at least when a refresh occurs, but
+	all consumers stubbornly continue to use the original value, even
+	when the underlying value has been changed.
+	For example, in the following views, the customer view model owns
+	and modifies the customers table. The account view model uses the
+	customers table as a lookup base. Notice that after changing a
+	customer name, the previous name is still loaded in the accounts
+	table - even when a refresh is performed on the accounts grid.
+	In an unrelated issue, notice that date filtering doesn't work, and
+	a date data field type can only be implemented as a custom control
+	type.
+-->
+<head>
+ <title>BankCore featuring jQuery, jsGrid, ASP.NET and REST</title>
+ <!-- Base formatting. -->
+ <link type="text/css" href="../Default.css" rel="stylesheet" />
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300,600,400' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" href="jsGridExamples/css/jsgrid.css" />
+	<link rel="stylesheet" type="text/css" href="jsGridExamples/css/jsgrid-theme.css" />
+	<link rel="stylesheet" type="text/css" href="jsGridExamples/code.jquery.com/jquery-ui.css">
+	<script src="jsGridExamples/code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="jsGridExamples/code.jquery.com/jquery-ui.js"></script>
+	<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+	<script src="jsGridExamples/js/jsgrid.js"></script>
+	<script src="Local01ViewModel.js"></script>
+</head>
+<body>
+ <div id="tabs">
+		<ul>
+			<li><a href="#Customers"><span>Customers</span></a></li>
+			<li><a href="#Accounts"><span>Accounts</span></a></li>
+			<li><a href="#Branches"><span>Branches</span></a></li>
+			<li><a href="#Employees"><span>Employees</span></a></li>
+		</ul>
+
+		<!-- Customers -->
+		<div id="Customers">
+			<p class="top0">Select a customer to edit or view.
+				Use the textboxes in the top row to filter.
+			</p>
+			<div id="grdCustomers" class="jsGrid"></div>
+		</div>
+		<!-- /Customers -->
+		<!-- Accounts -->
+		<div id="Accounts">
+			<p class="top0">Select an account to edit or view.
+				Use the textboxes in the top row to filter.
+			</p>
+			<div id="grdAccounts" class="jsGrid"></div>
+		</div>
+		<!-- /Accounts -->
+		<!-- Branches -->
+		<div id="Branches">
+			<p>Select a branch to edit or view.</p>
+			<div id="grdBranches" class="jsGrid"></div>
+		</div>
+		<!-- /Branches -->
+		<!-- Employees -->
+		<div id="Employees">
+			<p>Select an employee to edit or view.</p>
+			<div id="grdEmployees" class="jsGrid"></div>
+		</div>
+		<!-- /Employees -->
+	</div>
+</body>
+<script>
+	// //	Custom date fields.
+	// function getFormattedDate(date)
+	// {
+ //  var year = date.getFullYear();
+
+ //  var month = (1 + date.getMonth()).toString();
+ //  month = month.length > 1 ? month : '0' + month;
+
+ //  var day = date.getDate().toString();
+ //  day = day.length > 1 ? day : '0' + day;
+  
+	// 	return month + '/' + day + '/' + year;
+	// }
+	// var jsGridDateField = function(config)
+	// {
+	// 	jsGrid.Field.call(this, config);
+	// }
+	// jsGridDateField.prototype = new jsGrid.Field(
+	// {
+	// 	//	myCustomProperty: "foo",		// custom properties can be added
+	// 	align: "center",    //	general property 'align'
+	// 	css: "date-field",		// general property 'css'
+	// 	editTemplate: function(value)
+	// 	{
+	// 		return this._editPicker =
+	// 			$("<input>").datepicker().datepicker("setDate", new Date(value));
+	// 	},
+	// 	editValue: function()
+	// 	{
+	// 		return this._editPicker.datepicker("getDate").toISOString();
+	// 	},
+	// 	filterTemplate: function()
+	// 	{
+	// 		var now = new Date();
+	// 		this._fromPicker = $("<input>").datepicker({ defaultDate: now.setFullYear(now.getFullYear() - 1) });
+	// 		this._toPicker = $("<input>").datepicker({ defaultDate: now.setFullYear(now.getFullYear() + 1) });
+	// 		return $("<div>").append(this._fromPicker).append(this._toPicker);
+	// 	},
+	// 	filterValue: function()
+	// 	{
+	// 			return {
+	// 				from: this._fromPicker.datepicker("getDate"),
+	// 				to: this._toPicker.datepicker("getDate")
+	// 			};
+	// 	},
+	// 	insertTemplate: function(value)
+	// 	{
+	// 		return this._insertPicker =
+	// 			$("<input>").datepicker({ defaultDate: new Date() });
+	// 	},
+	// 	insertValue: function()
+	// 	{
+	// 		return this._insertPicker.datepicker("getDate").toISOString();
+	// 	},
+	// 	itemTemplate: function(value)
+	// 	{
+	// 		return getFormattedDate(new Date(value));
+	// 	},
+	// 	sorter: function(date1, date2)
+	// 	{
+	// 		return new Date(date1) - new Date(date2);
+	// 	}
+	// });
+	// jsGrid.fields.date = jsGridDateField;
+	// //	/Custom date fields.
+
+	$(document).ready(function()
+	{
+		$("#tabs").tabs({
+			activate: function(event, ui)
+			{
+				switch(ui.newPanel.attr('id'))
+				{
+					case "Accounts":
+						console.log("Tab Selected: Accounts...");
+						$("#grdAccounts").jsGrid("render");
+						break;
+					case "Branches":
+					case "Customers":
+					case "Employees":
+						break;
+				}
+			}
+		});
+		//	Views.
+		//	Accounts view.
+		$("#grdAccounts").jsGrid({
+			// height: "70vh",
+			width: "100%",
+
+			filtering: true,
+			editing: true,
+			sorting: true,
+			paging: true,
+			autoload: true,
+
+			// pageSize: 4,
+			// pageButtonCount: 5,
+
+			deleteConfirm: "Do you really want to delete the account?",
+
+			controller: accountsViewModel,
+
+			fields: [
+				{ name: "AccountTicket", type: "text", width: 150 },
+				{ name: "CustomerID", title: "Customer", type: "select", items: customersViewModel.customers, valueField: "CustomerID", textField: "Name", width: 150 },
+				{ name: "AccountStatus", title: "Account Status", type: "select", items: accountsViewModel.accountStates, valueField: "StateName", textField: "StateName" },
+				{ name: "BalanceAvailable", title: "Balance Available", type: "number" },
+				{ name: "BalancePending", title: "Balance Pending", type: "number" },
+				{ name: "DateOpened", title: "Date Opened", type: "text" },
+				{ name: "DateClosed", title: "Date Closed", type: "text" },
+				{ name: "DateLastActivity", title: "DateLastActivity", type: "text" },
+				// { name: "BranchID", type: "select", width: 200 },
+				//	{ name: "EmployeeID", type: "select"  },
+				{ type: "control" }
+			]
+		});
+		//	Customers view.
+		$("#grdCustomers").jsGrid({
+			// height: "70vh",
+			width: "100%",
+
+			filtering: true,
+			editing: true,
+			sorting: true,
+			paging: true,
+			autoload: true,
+
+			// pageSize: 4,
+			// pageButtonCount: 5,
+
+			deleteConfirm: "Do you really want to delete the customer?",
+
+			controller: customersViewModel,
+
+			fields: [
+				{ name: "CustomerTicket", type: "text", width: 150 },
+				{ name: "Name", type: "text", width: 150 },
+				{ name: "Address", type: "text" },
+				{ name: "City", type: "text" },
+				{ name: "State", type: "text" },
+				{ name: "ZipCode", type: "text" },
+				{ name: "TIN", type: "text" },
+				// { name: "Age", type: "number", width: 50 },
+				// { name: "Address", type: "text", width: 200 },
+				// //	{ name: "Country", type: "select", items: db.countries, valueField: "Id", textField: "Name" },
+				{ type: "control" }
+			]
+		});
+	});
+</script>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>Basic Scenario - jsGrid Demo</title>
+		
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:300,600,400' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" type="text/css" href="css/demos.css" />
+		<link rel="stylesheet" type="text/css" href="../../scripts/jsgrid/jsgrid.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../scripts/jsgrid/jsgrid-theme.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../scripts/jquery-ui-1.12.1.d1/jquery-ui.min.css">
+		<script src="../../scripts/jquery-3.3.1.min.js"></script>
+		<script src="../../scripts/jquery-ui-1.12.1.d1/jquery-ui.min.js"></script>
+		<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+		
+		<!-- <script>window.jQuery || document.write('<script src="/js/jquery-1.8.3.js"><\/script>')</script> -->
+		
+		<script src="../../scripts/jsgrid/jsgrid.min.js"></script>
+		<!-- <script src="js/jsgrid-fr.js"></script> -->
+		<script src="js/db.js"></script>
+		<style>
+			body
+			{
+				font-family: Calibri, Verdana, Geneva, Tahoma, sans-serif;
+				font-size: 12pt;
+			}
+		</style>
+	</head>	
+	<body>
+		<div id="jsGrid" class="jsGrid"></div>
+	</body>
+	<script>
+		$(function()
+		{
+			$("#jsGrid").jsGrid(
+			{
+				//	NOTE: jsGrid will support <!doctype html> if the height
+				//	is set to a pixel or view height value, etc. but
+				//	not a percentage.
+				height: "60vh",
+				width: "100%",
+
+				filtering: true,
+				editing: true,
+				sorting: true,
+				paging: true,
+				autoload: true,
+
+				pageSize: 15,
+				pageButtonCount: 5,
+
+				deleteConfirm: "Do you really want to delete the client?",
+
+				controller: db,
+
+				fields:
+				[
+					{ name: "Name", type: "text", width: 150 },
+					{ name: "Age", type: "number", width: 50 },
+					{ name: "Address", type: "text", width: 200 },
+					{ name: "Country", type: "select", items: db.countries, valueField: "Id", textField: "Name" },
+					{ name: "Married", type: "checkbox", title: "Is Married", sorting: false },
+					{ type: "control" }
+				]
+		});
+	});
+	// $(document).ready(function()
+	// {
+	// 	$("#jsGrid").jsGrid(
+	// 	{
+	// 		height: "90%",
+	// 		width: "100%",
+
+	// 		filtering: true,
+	// 		editing: true,
+	// 		sorting: true,
+	// 		paging: true,
+	// 		autoload: true,
+
+	// 		pageSize: 15,
+	// 		pageButtonCount: 5,
+
+	// 		deleteConfirm: "Do you really want to delete the client?",
+
+	// 		controller: db,
+
+	// 		fields: [
+	// 			{ name: "Name", type: "text", width: 150 },
+	// 			{ name: "Age", type: "number", width: 50 },
+	// 			{ name: "Address", type: "text", width: 200 },
+	// 			{ name: "Country", type: "select", items: db.countries, valueField: "Id", textField: "Name" },
+	// 			{ name: "Married", type: "checkbox", title: "Is Married", sorting: false },
+	// 			{ type: "control" }
+	// 		]
+	// 	});
+	// });
+	</script>
+</html>
+

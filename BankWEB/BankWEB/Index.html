@@ -1,1492 +1,265 @@
-﻿<!DOCTYPE html>
+﻿<!doctype html>
+<!--
+	Copyright (c) 2019. Daniel Patterson (danielanywhere)
+	Released for public access under the MIT License.
+	http://www.opensource.org/licenses/mit-license.php
+-->
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
- <!--
-  In this implementation, JQuery is used to update records modified on the
-  individual record panels.
-  The individual value being sent to the server is not JSON, but URL-encoded
-  text field values, as dictated by the default JQuery setting
-  contentType: application/x-www-form-urlencoded, which is common.
-  To serialize the records, the JQuery.param method is used in conjunction
-  with the local simpleValue method to create the URL encoded content for the
-  active table. This combination is properly deserialized by the associated
-  ApiController at the server Web API 2 endpoint.
- -->
+<!--
+	In this MVVM version, the view model layers are implicit.
+	- All HTML is declarative, and defines the VIEW.
+	- All JavaScript logic composes the VIEW MODEL.
+	- All JSON tables constitute the MODEL.
 
- <title>BankCore featuring Kendo UI MVVM JQuery, ASP.NET and REST</title>
- <!-- Base formatting. -->
- <link href="Default.css" rel="stylesheet" />
- <!-- Common Kendo UI CSS for web widgets and widgets for data visualization. -->
- <link href="styles/kendo.common.min.css" rel="stylesheet" />
- <!-- Set a theme -->
- <link href="styles/kendo.blueopal.min.css" rel="stylesheet" />
- <!-- jQuery Javascript from VS2013 -->
- <script src="Scripts/jquery-1.10.2.min.js"></script>
- <!-- Kendo UI Combined. -->
- <script src="js/kendo.all.min.js"></script>
+	This file demonstrates a customized version of jsGrid.js that has several
+	improvements by Daniel Patterson.
+
+	This file demonstrates that the implementation of jsGrid is much smaller and
+	easier to implement than an equal usage of Telerik Kendo grid.
+	The original version of jsGrid can be found at:
+ https://github.com/tabalinas/jsgrid
+-->
+<head>
+ <title>BankCore featuring jQuery, jsGrid, ASP.NET, and REST</title>
+	<!-- Base formatting. -->
+	<meta charset="utf-8" />
+ <link rel="stylesheet" type="text/css" href="Default.css" />
+	<link rel="stylesheet" type="text/css" href="scripts/jsgridmod/jsgrid.css" />
+	<link rel="stylesheet" type="text/css" href="scripts/jsgridmod/jsgrid-theme.css" />
+	<link rel="stylesheet" type="text/css" href="scripts/jquery-ui-1.12.1.d1/jquery-ui.css" />
+	<script src="scripts/jquery-3.3.1.js"></script>
+	<script src="scripts/jquery-ui-1.12.1.d1/jquery-ui.js"></script>
+	<script src="scripts/jquery.validate.1.9.min.js"></script>
+	<script src="scripts/jsgridmod/jsgrid.js"></script>
+	<script src="scripts/IndexViewModel.js"></script>
 </head>
 <body>
- <div id="pnlMain">
-  <div id="tctlMain">
-   <div class="demo-section k-content">
-    <div id="tabstrip">
-     <ul>
-      <li class="k-state-active">Customers</li>
-      <li>Accounts</li>
-      <li>Branches</li>
-      <li>Employees</li>
-     </ul>
-     <div>
-      <!-- Customers -->
-      <span class="tpanel">Select a customer to edit or view.</span>
-      <div class="tcontent">
-       <div id="dgCustomers"></div>
-      </div>
-     </div>
-
-     <div>
-      <!-- Accounts -->
-      <span class="tpanel">Select a account to edit or view.</span>
-      <div class="tcontent">
-       <div id="dgAccounts"></div>
-      </div>
-     </div>
-
-     <div>
-      <!-- Branches -->
-      <span class="tpanel">Select a branch to edit or view.</span>
-      <div class="tcontent">
-       <div id="dgBranches"></div>
-      </div>
-     </div>
-
-     <div>
-      <!-- Employees -->
-      <span class="tpanel">Select a employee to edit or view.</span>
-      <div class="tcontent">
-       <div id="dgEmployees"></div>
-      </div>
-     </div>
-
-    </div>
-   </div>
-  </div>
- </div>
-
- <div id="pnlCustomer" class="hidden">
-  <div class="backButton">
-   <a onclick="activateMain();">
-    <img src="Images/BackArrow.png" />
-    Back to main form
-   </a>
-  </div>
-  <div class="formBody" style="width:400px">
-   <h2>Customer</h2>
-   <div id="frmCustomer">
-    <!--
-     1. When binding to a single record that has been retrieved from the server,
-      an array is expected anyway. When using a single record source for an
-      object such as a textbox, the correct binding path is
-      packageSource.data()[0].FieldName where FieldName is the name of each field
-      to be bound.
-     2. When binding to the item selected from a local record set, such as that
-      driven by the kendogrid control, the correct binding path is
-      selectedItem.FieldName
-      In this case, an additional property like 'selectedItem' should be placed
-      in the observable, and set from the event in the multi-record controller
-      hosting the selection. In this case, the multi-record controller is a grid,
-      and selectedItem is being set from the kendogrid.change event.
-    -->
-    <div class="demo-section k-content">
-     <table class="formFields">
-
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="customerCustomerTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.CustomerTicket, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Name:</td>
-       <td>
-        <input id="customerName" type="text" class="k-textbox"
-               data-bind="value: selectedItem.Name, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Address:</td>
-       <td>
-        <input id="customerAddress" type="text" class="k-textbox"
-               data-bind="value: selectedItem.Address, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>City:</td>
-       <td>
-        <input id="customerCity" type="text" class="k-textbox"
-               data-bind="value: selectedItem.City, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>State:</td>
-       <td>
-        <input id="customerState" type="text" class="k-textbox"
-               data-bind="value: selectedItem.State, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Zip Code:</td>
-       <td>
-        <input id="customerZipCode" type="text" class="k-textbox"
-               data-bind="value: selectedItem.ZipCode, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>TIN:</td>
-       <td>
-        <input id="customerTIN" type="text" class="k-textbox"
-               data-bind="value: selectedItem.TIN, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>&nbsp;</td>
-       <td>
-        <button data-role="button" data-icon="edit"
-                data-bind="visible:isSaveVisible, enabled:isSaveEnabled, events:{click:saveClicked}"
-                style="width:180px">
-         Save
-        </button>
-       </td>
-      </tr>
-     </table>
-    </div>
-   </div>
-  </div>
- </div>
-
- <div id="pnlAccount" class="hidden">
-  <div class="backButton">
-   <a onclick="activateMain();">
-    <img src="Images/BackArrow.png" />
-    Back to main form
-   </a>
-  </div>
-  <div class="formBody" style="width:400px">
-   <h2>Account</h2>
-   <div id="frmAccount">
-    <!--
-     1. When binding to a single record that has been retrieved from the server,
-      an array is expected anyway. When using a single record source for an
-      object such as a textbox, the correct binding path is
-      packageSource.data()[0].FieldName where FieldName is the name of each field
-      to be bound.
-     2. When binding to the item selected from a local record set, such as that
-      driven by the kendogrid control, the correct binding path is
-      selectedItem.FieldName
-      In this case, an additional property like 'selectedItem' should be placed
-      in the observable, and set from the event in the multi-record controller
-      hosting the selection. In this case, the multi-record controller is a grid,
-      and selectedItem is being set from the kendogrid.change event.
-    -->
-    <div class="demo-section k-content">
-     <table class="formFields">
-
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="accountAccountTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.AccountTicket, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Status:</td>
-       <td>
-        <input id="accountAccountStatus" type="text" class="k-textbox"
-               data-bind="value: selectedItem.AccountStatus, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Branch ID:</td>
-       <td>
-        <input id="accountBranchID" type="text" class="k-textbox"
-               data-bind="value: selectedItem.BranchID, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Customer ID:</td>
-       <td>
-        <input id="accountCustomerID" type="text" class="k-textbox"
-               data-bind="value: selectedItem.CustomerID, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Date Closed:</td>
-       <td>
-        <input id="accountDateClosed" type="text" class="k-textbox"
-               data-bind="value: selectedItem.DateClosed, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Date Last Activity:</td>
-       <td>
-        <input id="accountDateLastActivity" type="text" class="k-textbox"
-               data-bind="value: selectedItem.DateLastActivity, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Date Opened:</td>
-       <td>
-        <input id="accountDateOpened" type="text" class="k-textbox"
-               data-bind="value: selectedItem.DateOpened, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Employee ID:</td>
-       <td>
-        <input id="accountEmployeeID" type="text" class="k-textbox"
-               data-bind="value: selectedItem.EmployeeID, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>&nbsp;</td>
-       <td>
-        <button data-role="button" data-icon="edit"
-                data-bind="visible:isSaveVisible, enabled:isSaveEnabled, events:{click:saveClicked}"
-                style="width:180px">
-         Save
-        </button>
-       </td>
-      </tr>
-     </table>
-    </div>
-   </div>
-  </div>
- </div>
-
- <div id="pnlBranch" class="hidden">
-  <div class="backButton">
-   <a onclick="activateMain();">
-    <img src="Images/BackArrow.png" />
-    Back to main form
-   </a>
-  </div>
-  <div class="formBody" style="width:400px">
-   <h2>Branch</h2>
-   <div id="frmBranch">
-    <!--
-     1. When binding to a single record that has been retrieved from the server,
-      an array is expected anyway. When using a single record source for an
-      object such as a textbox, the correct binding path is
-      packageSource.data()[0].FieldName where FieldName is the name of each field
-      to be bound.
-     2. When binding to the item selected from a local record set, such as that
-      driven by the kendogrid control, the correct binding path is
-      selectedItem.FieldName
-      In this case, an additional property like 'selectedItem' should be placed
-      in the observable, and set from the event in the multi-record controller
-      hosting the selection. In this case, the multi-record controller is a grid,
-      and selectedItem is being set from the kendogrid.change event.
-    -->
-    <div class="demo-section k-content">
-     <table class="formFields">
-
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="branchBranchTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.BranchTicket, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Name:</td>
-       <td>
-        <input id="branchName" type="text" class="k-textbox"
-               data-bind="value: selectedItem.Name, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Address:</td>
-       <td>
-        <input id="branchAddress" type="text" class="k-textbox"
-               data-bind="value: selectedItem.Address, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>City:</td>
-       <td>
-        <input id="branchCity" type="text" class="k-textbox"
-               data-bind="value: selectedItem.City, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>State:</td>
-       <td>
-        <input id="branchState" type="text" class="k-textbox"
-               data-bind="value: selectedItem.State, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Zip Code:</td>
-       <td>
-        <input id="branchZipCode" type="text" class="k-textbox"
-               data-bind="value: selectedItem.ZipCode, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>&nbsp;</td>
-       <td>
-        <button data-role="button" data-icon="edit"
-                data-bind="visible:isSaveVisible, enabled:isSaveEnabled, events:{click:saveClicked}"
-                style="width:180px">
-         Save
-        </button>
-       </td>
-      </tr>
-     </table>
-    </div>
-   </div>
-  </div>
- </div>
-
- <div id="pnlEmployee" class="hidden">
-  <div class="backButton">
-   <a onclick="activateMain();">
-    <img src="Images/BackArrow.png" />
-    Back to main form
-   </a>
-  </div>
-  <div class="formBody" style="width:400px">
-   <h2>Employee</h2>
-   <div id="frmEmployee">
-    <!--
-     1. When binding to a single record that has been retrieved from the server,
-      an array is expected anyway. When using a single record source for an
-      object such as a textbox, the correct binding path is
-      packageSource.data()[0].FieldName where FieldName is the name of each field
-      to be bound.
-     2. When binding to the item selected from a local record set, such as that
-      driven by the kendogrid control, the correct binding path is
-      selectedItem.FieldName
-      In this case, an additional property like 'selectedItem' should be placed
-      in the observable, and set from the event in the multi-record controller
-      hosting the selection. In this case, the multi-record controller is a grid,
-      and selectedItem is being set from the kendogrid.change event.
-    -->
-    <div class="demo-section k-content">
-     <table class="formFields">
-
-      <tr>
-       <td>Ticket:</td>
-       <td>
-        <input id="employeeEmployeeTicket" type="text" class="k-textbox"
-               data-bind="value: selectedItem.EmployeeTicket, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>First Name:</td>
-       <td>
-        <input id="employeeFirstName" type="text" class="k-textbox"
-               data-bind="value: selectedItem.FirstName, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Last Name:</td>
-       <td>
-        <input id="employeeLastName" type="text" class="k-textbox"
-               data-bind="value: selectedItem.LastName, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Date Started:</td>
-       <td>
-        <input id="employeeDateStarted" type="text" class="k-textbox"
-               data-bind="value: selectedItem.DateStarted, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Date Ended:</td>
-       <td>
-        <input id="employeeDateEnded" type="text" class="k-textbox"
-               data-bind="value: selectedItem.DateEnded, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>Title:</td>
-       <td>
-        <input id="employeeTitle" type="text" class="k-textbox"
-               data-bind="value: selectedItem.Title, events:{change:textChanged}" />
-       </td>
-      </tr>
-
-      <tr>
-       <td>&nbsp;</td>
-       <td>
-        <button data-role="button" data-icon="edit"
-                data-bind="visible:isSaveVisible, enabled:isSaveEnabled, events:{click:saveClicked}"
-                style="width:180px">
-         Save
-        </button>
-       </td>
-      </tr>
-     </table>
-    </div>
-   </div>
-  </div>
- </div>
-
- <script>
-  // Activate the main panel.
-  function activateMain()
-  {
-   if(!$("#pnlCustomer").hasClass("hidden"))
-   {
-    $("#pnlCustomer").addClass("hidden");
-   }
-   if(!$("#pnlAccount").hasClass("hidden"))
-   {
-    $("#pnlAccount").addClass("hidden");
-   }
-   if(!$("#pnlBranch").hasClass("hidden"))
-   {
-    $("#pnlBranch").addClass("hidden");
-   }
-   if(!$("#pnlEmployee").hasClass("hidden"))
-   {
-    $("#pnlEmployee").addClass("hidden");
-   }
-   if($("#pnlMain").hasClass("hidden"))
-   {
-    $("#pnlMain").removeClass("hidden");
-   }
-  }
-
-  // Set a control's behavior to read only.
-  function setReadOnly(name)
-  {
-   $(name).attr("readonly", true);
-   $(name).addClass("rdonly");
-   $(name).attr("tabindex", -1);
-  }
-  // Return a simple name/value list for the specified table.
-  function simpleValue(table, item)
-  {
-   var rv = {};
-   switch(table)
-   {
-    case "Customer":
-     rv = {
-      "CustomerID": item.CustomerID.toString(),
-      "CustomerTicket": item.CustomerTicket.toString(),
-      "Name": item.Name.toString(),
-      "Address": item.Address.toString(),
-      "City": item.City.toString(),
-      "State": item.State.toString(),
-      "ZipCode": item.ZipCode.toString(),
-      "TIN": item.TIN.toString()
-     };
-     break;
-    case "Account":
-     rv = {
-      "AccountID": item.AccountID.toString(),
-      "AccountTicket": item.AccountTicket.toString(),
-      "AccountStatus": item.AccountStatus.toString(),
-      "BalanceAvailable": item.BalanceAvailable.toString(),
-      "BalancePending": item.BalancePending.toString(),
-      "BranchID": item.BranchID.toString(),
-      "CustomerID": item.CustomerID.toString(),
-      "DateClosed": item.DateClosed.toString(),
-      "DateLastActivity": item.DateLastActivity.toString(),
-      "DateOpened": item.DateOpened.toString(),
-      "EmployeeID": item.EmployeeID.toString()
-     };
-     break;
-    case "Branch":
-     rv = {
-      "BranchID": item.BranchID.toString(),
-      "BranchTicket": item.BranchTicket.toString(),
-      "Name": item.Name.toString(),
-      "Address": item.Address.toString(),
-      "City": item.City.toString(),
-      "State": item.State.toString(),
-      "ZipCode": item.ZipCode.toString()
-     };
-     break;
-    case "Employee":
-     rv = {
-      "EmployeeID": item.EmployeeID.toString(),
-      "EmployeeTicket": item.EmployeeTicket.toString(),
-      "FirstName": item.FirstName.toString(),
-      "LastName": item.LastName.toString(),
-      "DateStarted": item.DateStarted.toString(),
-      "DateEnded": item.DateEnded.toString(),
-      "Title": item.Title.toString(),
-      "TIN": item.TIN.toString()
-     };
-     break;
-   }
-   return rv;
-  }
-  // The document is ready. Launch the single page application.
-  $(document).ready(function()
-  {
-   try
-   {
-    // *** Model Definitions. ***
-    var customerModel = new kendo.data.Model.define({
-     id: "CustomerID",
-     fields: {
-      CustomerID: {},
-      CustomerTicket: {},
-      Name: {},
-      Address: {},
-      City: {},
-      State: {},
-      ZipCode: {},
-      TIN: {}
-     }
-    });
-
-    var accountModel = new kendo.data.Model.define({
-     id: "AccountID",
-     fields: {
-      AccountID: {},
-      AccountTicket: {},
-      AccountStatus: {},
-      BalanceAvailable: {},
-      BalancePending: {},
-      BranchID: {},
-      CustomerID: {},
-      DateClosed: {},
-      DateLastActivity: {},
-      DateOpened: {},
-      EmployeeID: {},
-     }
-    });
-
-    var branchModel = new kendo.data.Model.define({
-     id: "BranchID",
-     fields: {
-      BranchID: {},
-      BranchTicket: {},
-      Name: {},
-      Address: {},
-      City: {},
-      State: {},
-      ZipCode: {}
-     }
-    });
-
-    var employeeModel = new kendo.data.Model.define({
-     id: "EmployeeID",
-     fields: {
-      EmployeeID: {},
-      EmployeeTicket: {},
-      FirstName: {},
-      LastName: {},
-      DateStarted: {},
-      DateEnded: {},
-      Title: {},
-      TIN: {}
-     }
-    });
-
-    // Lookup Models.
-    var customerLookupModel = new kendo.data.Model.define({
-     id: "CustomerID",
-     fields: {
-      CustomerID: {},
-      Name: {}
-     }
-    });
-
-    var accountLookupModel = new kendo.data.Model.define({
-     id: "AccountID",
-     fields: {
-      AccountID: {},
-      AccountID: {}
-     }
-    });
-
-    var branchLookupModel = new kendo.data.Model.define({
-     id: "BranchID",
-     fields: {
-      BranchID: {},
-      Name: {}
-     }
-    });
-
-    var employeeLookupModel = new kendo.data.Model.define({
-     id: "EmployeeID",
-     fields: {
-      EmployeeID: {},
-      DisplayName: {}
-     }
-    });
-
-    // *** DataSource Definitions ***
-    // Notice that an update won't occur on this DataSource if a model with
-    // an id: hasn't been defined. In this case, id: "CustomerID" is defined
-    // in the model.
-    var customerData = new kendo.data.DataSource({
-     schema: customerModel,
-     batch: true,
-     pageSize: 20,
-     transport: {
-      read: {
-       url: "api/Customers/",
-       dataType: "json"
-      }
-     }
-    });
-
-    var accountData = new kendo.data.DataSource({
-     schema: accountModel,
-     batch: true,
-     pageSize: 20,
-     transport: {
-      read: {
-       url: "api/Accounts/",
-       dataType: "json"
-      }
-     }
-    });
-
-    var branchData = new kendo.data.DataSource({
-     schema: branchModel,
-     batch: true,
-     pageSize: 20,
-     transport: {
-      read: {
-       url: "api/Branches/",
-       dataType: "json"
-      }
-     }
-    });
-
-    var employeeData = new kendo.data.DataSource({
-     schema: employeeModel,
-     batch: true,
-     pageSize: 20,
-     transport: {
-      read: {
-       url: "api/Employees/",
-       dataType: "json"
-      }
-     }
-    });
-
-    // DataSources for Lookup Models.
-    var customerLookupData = new kendo.dataDataSource({
-     schema: customerLookupModel,
-     batch: true,
-     transport: {
-      read: {
-       url: "api/CustomerLookups/",
-       dataType: "json"
-      }
-     }
-    });
-
-    var accountLookupData = new kendo.dataDataSource({
-     schema: accountLookupModel,
-     batch: true,
-     transport: {
-      read: {
-       url: "api/AccountLookups/",
-       dataType: "json"
-      }
-     }
-    });
-
-    var branchLookupData = new kendo.dataDataSource({
-     schema: branchLookupModel,
-     batch: true,
-     transport: {
-      read: {
-       url: "api/BranchLookups/",
-       dataType: "json"
-      }
-     }
-    });
-
-    var employeeLookupData = new kendo.dataDataSource({
-     schema: employeeLookupModel,
-     batch: true,
-     transport: {
-      read: {
-       url: "api/EmployeeLookups/",
-       dataType: "json"
-      }
-     }
-    });
-
-    // *** View Model Definitions ***
-    var customerViewModel = kendo.observable({
-     packageSource: customerData,
-     // The selected item belongs in the observable.
-     selectedItem: null,
-     hasChanges: false,
-     save: function()
-     {
-      this.packageSource.sync();
-      this.set("hasChanges", false);
-     },
-     remove: function()
-     {
-      if(confirm("Are you sure you wish to delete this record?"))
-      {
-       console.log("Event: [remove] on customerViewModel...");
-       this.packageSource.remove(this.selectedItem);
-       this.set("selectedItem", this.packageSource.view()[0]);
-       this.change();
-      }
-     },
-     showForm: function()
-     {
-      return this.get("selectedItem") != null;
-     },
-     change: function()
-     {
-      console.log("Event: [change] on customerViewModel...");
-      //this.packageSource.hasChanges = true;
-      this.set("hasChanges", true);
-     },
-     isSaveVisible: true,
-     isSaveEnabled: false,
-     textChanged: function(e)
-     {
-      // The e parameter contains bubbles, cancelable, target, and type
-      // properties.
-      // The target property identifies the calling object.
-      console.log("Text changed Event: " +
-       e.target.id + " " + e.target.value);
-      console.log(" DataSource hasChanges(): " +
-       this.packageSource.hasChanges());
-      this.set("isSaveEnabled", true);
-      this.set("hasChanges", true);
-      //this.packageSource.hasChanges = true;
-     },
-     saveClicked: function(e)
-     {
-      // Store the selectedItem unconditionally.
-      var id = 0;    // Record ID.
-      var il = 0;    // View Length.
-      var ix = 0;    // Record index.
-      var pd = "";   // Post Data.
-      var ur = "";   // URL to POST.
-      var vw = null; // Available Records.
-      var vx = null; // Current Record.
-      if(this.selectedItem != null)
-      {
-       id = this.selectedItem.CustomerID;
-       vw = this.packageSource.data();
-       il = vw.length;
-       for(ix = 0; ix < il; ix++)
-       {
-        if(vw[ix].CustomerID == id)
-        {
-         // Record ID found.
-         vx = vw[ix];
-         //vx.dirty = true;
-         console.log("Change Override: " + kendo.stringify(vx));
-         ur = "api/Customers/" + vx.CustomerID.toString();
-         pd = $.param(simpleValue("Customer", vx), true);
-         console.log("Prepare to send: " + pd);
-         console.log(" to : " + ur);
-         $.ajax({
-          dataType: "json",
-          type: "POST",
-          url: ur,
-          data: pd,
-          success: function(result)
-          {
-           console.log(" Record stored successfully...");
-          },
-          error: function(result)
-          {
-           console.log(" Error storing record...");
-          }
-         });
-         break;
-        }
-       }
-       console.log("Save clicked Event.");
-       this.set("isSaveEnabled", false);
-       this.set("hasChanges", false);
-      }
-     }
-    });
-
-    var accountViewModel = kendo.observable({
-     packageSource: accountData,
-     // The selected item belongs in the observable.
-     selectedItem: null,
-     hasChanges: false,
-     save: function()
-     {
-      this.packageSource.sync();
-      this.set("hasChanges", false);
-     },
-     remove: function()
-     {
-      if(confirm("Are you sure you wish to delete this record?"))
-      {
-       console.log("Event: [remove] on accountViewModel...");
-       this.packageSource.remove(this.selectedItem);
-       this.set("selectedItem", this.packageSource.view()[0]);
-       this.change();
-      }
-     },
-     showForm: function()
-     {
-      return this.get("selectedItem") != null;
-     },
-     change: function()
-     {
-      console.log("Event: [change] on accountViewModel...");
-      //this.packageSource.hasChanges = true;
-      this.set("hasChanges", true);
-     },
-     isSaveVisible: true,
-     isSaveEnabled: false,
-     textChanged: function(e)
-     {
-      // The e parameter contains bubbles, cancelable, target, and type
-      // properties.
-      // The target property identifies the calling object.
-      console.log("Text changed Event: " +
-       e.target.id + " " + e.target.value);
-      console.log(" DataSource hasChanges(): " +
-       this.packageSource.hasChanges());
-      this.set("isSaveEnabled", true);
-      this.set("hasChanges", true);
-      //this.packageSource.hasChanges = true;
-     },
-     saveClicked: function(e)
-     {
-      // Store the selectedItem unconditionally.
-      var id = 0;    // Record ID.
-      var il = 0;    // View Length.
-      var ix = 0;    // Record index.
-      var pd = "";   // Post Data.
-      var ur = "";   // URL to POST.
-      var vw = null; // Available Records.
-      var vx = null; // Current Record.
-      if(this.selectedItem != null)
-      {
-       id = this.selectedItem.AccountID;
-       vw = this.packageSource.data();
-       il = vw.length;
-       for(ix = 0; ix < il; ix++)
-       {
-        if(vw[ix].AccountID == id)
-        {
-         // Record ID found.
-         vx = vw[ix];
-         //vx.dirty = true;
-         console.log("Change Override: " + kendo.stringify(vx));
-         ur = "api/Accounts/" + vx.AccountID.toString();
-         pd = $.param(simpleValue("Account", vx), true);
-         console.log("Prepare to send: " + pd);
-         console.log(" to : " + ur);
-         $.ajax({
-          dataType: "json",
-          type: "POST",
-          url: ur,
-          data: pd,
-          success: function(result)
-          {
-           console.log(" Record stored successfully...");
-          },
-          error: function(result)
-          {
-           console.log(" Error storing record...");
-          }
-         });
-         break;
-        }
-       }
-       console.log("Save clicked Event.");
-       this.set("isSaveEnabled", false);
-       this.set("hasChanges", false);
-      }
-     }
-    });
-
-    var branchViewModel = kendo.observable({
-     packageSource: branchData,
-     // The selected item belongs in the observable.
-     selectedItem: null,
-     hasChanges: false,
-     save: function()
-     {
-      this.packageSource.sync();
-      this.set("hasChanges", false);
-     },
-     remove: function()
-     {
-      if(confirm("Are you sure you wish to delete this record?"))
-      {
-       console.log("Event: [remove] on branchViewModel...");
-       this.packageSource.remove(this.selectedItem);
-       this.set("selectedItem", this.packageSource.view()[0]);
-       this.change();
-      }
-     },
-     showForm: function()
-     {
-      return this.get("selectedItem") != null;
-     },
-     change: function()
-     {
-      console.log("Event: [change] on branchViewModel...");
-      //this.packageSource.hasChanges = true;
-      this.set("hasChanges", true);
-     },
-     isSaveVisible: true,
-     isSaveEnabled: false,
-     textChanged: function(e)
-     {
-      // The e parameter contains bubbles, cancelable, target, and type
-      // properties.
-      // The target property identifies the calling object.
-      console.log("Text changed Event: " +
-       e.target.id + " " + e.target.value);
-      console.log(" DataSource hasChanges(): " +
-       this.packageSource.hasChanges());
-      this.set("isSaveEnabled", true);
-      this.set("hasChanges", true);
-      //this.packageSource.hasChanges = true;
-     },
-     saveClicked: function(e)
-     {
-      // Store the selectedItem unconditionally.
-      var id = 0;    // Record ID.
-      var il = 0;    // View Length.
-      var ix = 0;    // Record index.
-      var pd = "";   // Post Data.
-      var ur = "";   // URL to POST.
-      var vw = null; // Available Records.
-      var vx = null; // Current Record.
-      if(this.selectedItem != null)
-      {
-       id = this.selectedItem.BranchID;
-       vw = this.packageSource.data();
-       il = vw.length;
-       for(ix = 0; ix < il; ix++)
-       {
-        if(vw[ix].BranchID == id)
-        {
-         // Record ID found.
-         vx = vw[ix];
-         //vx.dirty = true;
-         console.log("Change Override: " + kendo.stringify(vx));
-         ur = "api/Branches/" + vx.BranchID.toString();
-         pd = $.param(simpleValue("Branch", vx), true);
-         console.log("Prepare to send: " + pd);
-         console.log(" to : " + ur);
-         $.ajax({
-          dataType: "json",
-          type: "POST",
-          url: ur,
-          data: pd,
-          success: function(result)
-          {
-           console.log(" Record stored successfully...");
-          },
-          error: function(result)
-          {
-           console.log(" Error storing record...");
-          }
-         });
-         break;
-        }
-       }
-       console.log("Save clicked Event.");
-       this.set("isSaveEnabled", false);
-       this.set("hasChanges", false);
-      }
-     }
-    });
-
-    var employeeViewModel = kendo.observable({
-     packageSource: employeeData,
-     // The selected item belongs in the observable.
-     selectedItem: null,
-     hasChanges: false,
-     save: function()
-     {
-      this.packageSource.sync();
-      this.set("hasChanges", false);
-     },
-     remove: function()
-     {
-      if(confirm("Are you sure you wish to delete this record?"))
-      {
-       console.log("Event: [remove] on employeeViewModel...");
-       this.packageSource.remove(this.selectedItem);
-       this.set("selectedItem", this.packageSource.view()[0]);
-       this.change();
-      }
-     },
-     showForm: function()
-     {
-      return this.get("selectedItem") != null;
-     },
-     change: function()
-     {
-      console.log("Event: [change] on employeeViewModel...");
-      //this.packageSource.hasChanges = true;
-      this.set("hasChanges", true);
-     },
-     isSaveVisible: true,
-     isSaveEnabled: false,
-     textChanged: function(e)
-     {
-      // The e parameter contains bubbles, cancelable, target, and type
-      // properties.
-      // The target property identifies the calling object.
-      console.log("Text changed Event: " +
-       e.target.id + " " + e.target.value);
-      console.log(" DataSource hasChanges(): " +
-       this.packageSource.hasChanges());
-      this.set("isSaveEnabled", true);
-      this.set("hasChanges", true);
-      //this.packageSource.hasChanges = true;
-     },
-     saveClicked: function(e)
-     {
-      // Store the selectedItem unconditionally.
-      var id = 0;    // Record ID.
-      var il = 0;    // View Length.
-      var ix = 0;    // Record index.
-      var pd = "";   // Post Data.
-      var ur = "";   // URL to POST.
-      var vw = null; // Available Records.
-      var vx = null; // Current Record.
-      if(this.selectedItem != null)
-      {
-       id = this.selectedItem.EmployeeID;
-       vw = this.packageSource.data();
-       il = vw.length;
-       for(ix = 0; ix < il; ix++)
-       {
-        if(vw[ix].EmployeeID == id)
-        {
-         // Record ID found.
-         vx = vw[ix];
-         //vx.dirty = true;
-         console.log("Change Override: " + kendo.stringify(vx));
-         ur = "api/Employees/" + vx.EmployeeID.toString();
-         pd = $.param(simpleValue("Employee", vx), true);
-         console.log("Prepare to send: " + pd);
-         console.log(" to : " + ur);
-         $.ajax({
-          dataType: "json",
-          type: "POST",
-          url: ur,
-          data: pd,
-          success: function(result)
-          {
-           console.log(" Record stored successfully...");
-          },
-          error: function(result)
-          {
-           console.log(" Error storing record...");
-          }
-         });
-         break;
-        }
-       }
-       console.log("Save clicked Event.");
-       this.set("isSaveEnabled", false);
-       this.set("hasChanges", false);
-      }
-     }
-    });
-
-    // *** DataGrids ***
-    // Customers.
-    $("#dgCustomers").kendoGrid({
-     dataSource: customerData,
-     height: 550,
-     groupable: true,
-     sortable: true,
-     selectable: "row",
-     pageable: {
-      refresh: true,
-      pageSizes: true,
-      buttonCount: 5
-     },
-     columns: [{
-      template: '<div class="record-icon"' +
-      'style="background-image: url(Images/Customer.png);"></div>' +
-      '<div class="record-name">#: Name #</div>',
-      field: "Name",
-      title: "Name",
-      alttemplate: '<a href="Customer.html?id=#=CustomerID#" ' +
-       ' target="blank">#=Name#</a>',
-      width: 240
-     }, {
-      field: "Address",
-      title: "Address"
-     }, {
-      field: "City",
-      title: "City"
-     }, {
-      field: "ZipCode",
-      title: "Zip Code"
-
-     }],
-     change: function(e)
-     {
-      var selectedRow = this.select();
-      if(selectedRow)
-      {
-       var dataItem = this.dataItem(selectedRow);
-       if(dataItem)
-       {
-        // Update the selected item on the View Model.
-        var v = customerViewModel;
-        if(v)
-        {
-         console.log("ViewModel found. Setting selected customer...");
-         // Important: Use the 'set' function, or notifications don't get sent.
-         v.set("selectedItem", dataItem);
-        }
-        // Display the customer form.
-        $("#pnlMain").addClass("hidden");
-        $("#pnlCustomer").removeClass("hidden");
-       }
-      }
-     }
-    });
-
-    // Accounts.
-    $("#dgAccounts").kendoGrid({
-     dataSource: accountData,
-     height: 550,
-     groupable: true,
-     sortable: true,
-     selectable: "row",
-     pageable: {
-      refresh: true,
-      pageSizes: true,
-      buttonCount: 5
-     },
-     columns: [{
-      template: '<div class="record-icon"' +
-      'style="background-image: url(Images/Account.png);"></div>' +
-      '<div class="record-name">#: AccountID #</div>',
-      field: "AccountID",
-      title: "ID",
-      alttemplate: '<a href="Account.html?id=#=AccountID#" ' +
-       ' target="blank">#=AccountID#</a>',
-      width: 240
-     }, {
-      field: "AccountStatus",
-      title: "Status"
-     }, {
-      field: "BalanceAvailable",
-      title: "Balance Available",
-      template: "Currency"
-     }, {
-      field: "BalancePending",
-      title: "Balance Pending",
-      template: "Currency"
-     }, {
-      field: "BranchName",
-      title: "Branch Name"
-     }, {
-      field: "CustomerName",
-      title: "Customer Name"
-     }, {
-      field: "DateClosed",
-      title: "Date Closed",
-      template: "#= kendo.toString(kendo.parseDate(DateClosed), 'yyyyMMdd')#"
-     }, {
-      field: "DateLastActivity",
-      title: "Date Last Activity",
-      template: "#= kendo.toString(kendo.parseDate(DateLastActivity), 'yyyyMMdd')#"
-     }, {
-      field: "DateOpened",
-      title: "Date Opened",
-      template: "#= kendo.toString(kendo.parseDate(DateOpened), 'yyyyMMdd')#"
-     }, {
-      field: "EmployeeName",
-      title: "Employee Name"
-
-     }],
-     change: function(e)
-     {
-      var selectedRow = this.select();
-      if(selectedRow)
-      {
-       var dataItem = this.dataItem(selectedRow);
-       if(dataItem)
-       {
-        // Update the selected item on the View Model.
-        var v = accountViewModel;
-        if(v)
-        {
-         console.log("ViewModel found. Setting selected account...");
-         // Important: Use the 'set' function, or notifications don't get sent.
-         v.set("selectedItem", dataItem);
-        }
-        // Display the account form.
-        $("#pnlMain").addClass("hidden");
-        $("#pnlAccount").removeClass("hidden");
-       }
-      }
-     }
-    });
-
-    // Branches.
-    $("#dgBranches").kendoGrid({
-     dataSource: branchData,
-     height: 550,
-     groupable: true,
-     sortable: true,
-     selectable: "row",
-     pageable: {
-      refresh: true,
-      pageSizes: true,
-      buttonCount: 5
-     },
-     columns: [{
-      template: '<div class="record-icon"' +
-      'style="background-image: url(Images/Branch.png);"></div>' +
-      '<div class="record-name">#: Name #</div>',
-      field: "Name",
-      title: "Name",
-      alttemplate: '<a href="Branch.html?id=#=BranchID#" ' +
-       ' target="blank">#=Name#</a>',
-      width: 240
-     }, {
-      field: "City",
-      title: "City"
-
-     }],
-     change: function(e)
-     {
-      var selectedRow = this.select();
-      if(selectedRow)
-      {
-       var dataItem = this.dataItem(selectedRow);
-       if(dataItem)
-       {
-        // Update the selected item on the View Model.
-        var v = branchViewModel;
-        if(v)
-        {
-         console.log("ViewModel found. Setting selected branch...");
-         // Important: Use the 'set' function, or notifications don't get sent.
-         v.set("selectedItem", dataItem);
-        }
-        // Display the branch form.
-        $("#pnlMain").addClass("hidden");
-        $("#pnlBranch").removeClass("hidden");
-       }
-      }
-     }
-    });
-
-    // Employees.
-    $("#dgEmployees").kendoGrid({
-     dataSource: employeeData,
-     height: 550,
-     groupable: true,
-     sortable: true,
-     selectable: "row",
-     pageable: {
-      refresh: true,
-      pageSizes: true,
-      buttonCount: 5
-     },
-     columns: [{
-      template: '<div class="record-icon"' +
-      'style="background-image: url(Images/Employee.png);"></div>' +
-      '<div class="record-name">#: DisplayName #</div>',
-      field: "DisplayName",
-      title: "Display Name",
-      alttemplate: '<a href="Employee.html?id=#=EmployeeID#" ' +
-       ' target="blank">#=DisplayName#</a>',
-      width: 240
-     }, {
-      field: "DateStarted",
-      title: "Date Started",
-      template: "#= kendo.toString(kendo.parseDate(DateStarted), 'yyyyMMdd')#"
-     }, {
-      field: "DateEnded",
-      title: "Date Ended",
-      template: "#= kendo.toString(kendo.parseDate(DateEnded), 'yyyyMMdd')#"
-     }, {
-      field: "Title",
-      title: "Title"
-
-     }],
-     change: function(e)
-     {
-      var selectedRow = this.select();
-      if(selectedRow)
-      {
-       var dataItem = this.dataItem(selectedRow);
-       if(dataItem)
-       {
-        // Update the selected item on the View Model.
-        var v = employeeViewModel;
-        if(v)
-        {
-         console.log("ViewModel found. Setting selected employee...");
-         // Important: Use the 'set' function, or notifications don't get sent.
-         v.set("selectedItem", dataItem);
-        }
-        // Display the employee form.
-        $("#pnlMain").addClass("hidden");
-        $("#pnlEmployee").removeClass("hidden");
-       }
-      }
-     }
-    });
-
-    // Initialize the main tab strip.
-    $("#tabstrip").kendoTabStrip({
-     animation: {
-      open: {
-       effects: "fadeIn"
-      }
-     },
-     activate: function(e)
-     {
-     }
-    });
-
-
-    // Bind all controls to their view models.
-    kendo.bind($("#dgCustomers"), customerViewModel);
-    kendo.bind($("#frmCustomer"), customerViewModel);
-    kendo.bind($("#dgAccounts"), accountViewModel);
-    kendo.bind($("#frmAccount"), accountViewModel);
-    kendo.bind($("#dgBranches"), branchViewModel);
-    kendo.bind($("#frmBranch"), branchViewModel);
-    kendo.bind($("#dgEmployees"), employeeViewModel);
-    kendo.bind($("#frmEmployee"), employeeViewModel);
-
-    // Bind DatePicker Controls.
-    $("#accountDateClosed").kendoDatePicker(
-    {
-     start: "year",
-     depth: "year",
-     format: "MM/dd/yyyy",
-     dateInput: true
-    });
-    $("#accountDateLastActivity").kendoDatePicker(
-    {
-     start: "year",
-     depth: "year",
-     format: "MM/dd/yyyy",
-     dateInput: true
-    });
-    $("#accountDateOpened").kendoDatePicker(
-    {
-     start: "year",
-     depth: "year",
-     format: "MM/dd/yyyy",
-     dateInput: true
-    });
-    $("#employeeDateStarted").kendoDatePicker(
-    {
-     start: "year",
-     depth: "year",
-     format: "MM/dd/yyyy",
-     dateInput: true
-    });
-    $("#employeeDateEnded").kendoDatePicker(
-    {
-     start: "year",
-     depth: "year",
-     format: "MM/dd/yyyy",
-     dateInput: true
-    });
-
-    // ComboBox Controls.
-    $("#accountBranchID").kendoComboBox(
-    {
-     dataTextField: "Name",
-     dataValueField: "BranchID",
-     dataSource: "BranchLookupData",
-     change: function(e)
-     {
-      UpdateBranchName(this, Branches, BranchLookupData, "BranchID");
-     }
-    });
-    $("#accountCustomerID").kendoComboBox(
-    {
-     dataTextField: "Name",
-     dataValueField: "CustomerID",
-     dataSource: "CustomerLookupData",
-     change: function(e)
-     {
-      UpdateCustomerName(this, CustomerLookupData, Customers, "CustomerID");
-     }
-    });
-    $("#accountEmployeeID").kendoComboBox(
-    {
-     dataTextField: "DisplayName",
-     dataValueField: "EmployeeID",
-     dataSource: "EmployeeLookupData",
-     change: function(e)
-     {
-      UpdateEmployeeName(this, Employees, EmployeeLookupData, "EmployeeID");
-     }
-    });
-
-    // Set additional control behaviors.
-    setReadOnly("#customerCustomerTicket");
-    setReadOnly("#accountAccountTicket");
-    setReadOnly("#branchBranchTicket");
-    setReadOnly("#employeeEmployeeTicket");
-
-    // Read all pages of data.
-    customerData.read();
-    accountData.read();
-    branchData.read();
-    employeeData.read();
-   }
-   catch(ex)
-   {
-    alert("Error: " + ex.message);
-   }
-  });
-  // /document.ready.
- </script>
-
+ <div id="tabs">
+		<!-- Tab Control -->
+		<ul>
+			<li><a href="#Customers"><span>Customers</span></a></li>
+			<li><a href="#Accounts"><span>Accounts</span></a></li>
+			<li><a href="#Branches"><span>Branches</span></a></li>
+			<li><a href="#Employees"><span>Employees</span></a></li>
+		</ul>
+		<!-- /Tab Control -->
+
+		<!-- Customers Panel -->
+		<div id="Customers">
+			<p class="top0">Select a customer to edit or view.</p>
+			<div id="grdCustomers" class="jsGrid"></div>
+			<!-- Customer Filtering -->
+			<div class="tabAccordian">
+				<h3>Row Filter Settings</h3>
+				<div id="filtCustomers" class="rowFilter">
+					<div class="head">Row Filtering</div>
+					<p class="small">Enter all or part of a value to look for in each desired column.</p>
+					<label class="container">Customer Ticket:
+						<input type="text" id="txtfiltcstCustomerTicket">
+					</label>
+					<label class="container">Name:
+						<input type="text" id="txtfiltcstName">
+					</label>
+					<label class="container">Address:
+						<input type="text" id="txtfiltcstAddress">
+					</label>
+					<label class="container">City:
+						<input type="text" id="txtfiltcstCity">
+					</label>
+					<label class="container">State:
+						<input type="text" id="txtfiltcstState">
+					</label>
+					<label class="container">ZipCode:
+						<input type="text" id="txtfiltcstZipCode">
+					</label>
+					<label class="container">TIN:
+						<input type="text" id="txtfiltcstTIN">
+					</label>
+					<input type="button" id="btnfiltcstApply" value="Apply Filter">
+					<input type="button" id="btnfiltcstClear" value="Clear Values">
+				</div>
+			</div>
+			<!-- /Customer Filtering -->
+			<!-- Customer Column Visibility -->
+			<div class="tabAccordian">
+				<h3>Column Settings</h3>
+				<div id="colctlCustomers" class="columnVisibility">
+					<div class="head">Column Visibility</div>
+					<label class="container">CustomerTicket
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstCustomerTicket">
+						<span class="checkmark"></span>
+					</label>
+					<label class="container">Name
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstName">
+						<span class="checkmark"></span>
+					</label>
+					<label class="container">Address
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstAddress">
+						<span class="checkmark"></span>
+					</label>
+					<label class="container">City
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstCity">
+						<span class="checkmark"></span>
+					</label>
+					<label class="container">State
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstState">
+						<span class="checkmark"></span>
+					</label>
+					<label class="container">ZipCode
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstZipCode">
+						<span class="checkmark"></span>
+					</label>
+					<label class="container">TIN
+						<input type="checkbox" checked="checked"
+							id="chkcolctlcstTIN">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+			</div>
+			<!-- /Customer Column Visibility -->
+		</div>
+		<!-- /Customers Panel -->
+
+		<!-- Accounts Panel -->
+		<div id="Accounts">
+			<p class="top0">Select an account to edit or view.</p>
+			<div id="grdAccounts" class="jsGrid"></div>
+			<!-- Account Filtering -->
+			<div class="tabAccordian">
+					<h3>Row Filter Settings</h3>
+					<div id="filtAccounts" class="rowFilter">
+						<div class="head">Row Filtering</div>
+						<p class="small">Enter all or part of a value to look for in each desired column.</p>
+						<label class="container">Account Ticket:
+							<input type="text" id="txtfiltactAccountTicket">
+						</label>
+						<label class="container">Customer:
+							<input type="text" id="txtfiltactCustomer">
+						</label>
+						<label class="container">Status:
+							<input type="text" id="txtfiltactAccountStatus">
+						</label>
+						<label class="container">Available Bal (Min):
+							<input type="text" id="txtfiltactBalanceAvailable.Min">
+						</label>
+						<label class="container">Available Bal (Max):
+							<input type="text" id="txtfiltactBalanceAvailable.Max">
+						</label>
+						<label class="container">Pending Bal (Min):
+							<input type="text" id="txtfiltactBalancePending.Min">
+						</label>
+						<label class="container">Pending Bal (Max):
+							<input type="text" id="txtfiltactBalancePending.Max">
+						</label>
+						<label class="container">Date Opened (Min):
+							<input type="text" id="txtfiltactDateOpened.Min">
+						</label>
+						<label class="container">Date Opened (Max):
+							<input type="text" id="txtfiltactDateOpened.Max">
+						</label>
+						<label class="container">Date Closed (Min):
+							<input type="text" id="txtfiltactDateClosed.Min">
+						</label>
+						<label class="container">Date Closed (Max):
+							<input type="text" id="txtfiltactDateClosed.Max">
+						</label>
+						<label class="container">Date Last Activity (Min):
+							<input type="text" id="txtfiltactDateClosed.Min">
+						</label>
+						<label class="container">Date Last Activity (Max):
+							<input type="text" id="txtfiltactDateClosed.Max">
+						</label>
+						<label class="container">Branch:
+							<input type="text" id="txtfiltactBranch">
+						</label>
+						<label class="container">Employee:
+							<input type="text" id="txtfiltactEmployee">
+						</label>
+						<input type="button" id="btnfiltcstApply" value="Apply Filter">
+						<input type="button" id="btnfiltcstClear" value="Clear Values">
+					</div>
+				</div>
+				<!-- /Account Filtering -->
+				<!-- Account Column Visibility -->
+				<div class="tabAccordian">
+					<h3>Column Settings</h3>
+					<div id="colctlAccounts" class="columnVisibility">
+						<div class="head">Column Visibility</div>
+						<label class="container">Account Ticket
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactAccountTicket">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Customer
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactCustomer">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Account Status
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactAccountStatus">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Balance Available
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactBalanceAvailable">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Balance Pending
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactBalancePending">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Date Opened
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactDateOpened">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Date Closed
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactDateClosed">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Date Last Activity
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactDateLastActivity">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Branch
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactBranch">
+							<span class="checkmark"></span>
+						</label>
+						<label class="container">Employee
+							<input type="checkbox" checked="checked"
+								id="chkcolctlactEmployee">
+							<span class="checkmark"></span>
+						</label>
+					</div>
+				</div>
+				<!-- /Account Column Visibility -->
+			</div>
+		<!-- /Accounts Panel -->
+
+		<!-- Branches Panel -->
+		<div id="Branches">
+			<p>Select a branch to edit or view.</p>
+			<div id="grdBranches" class="jsGrid"></div>
+		</div>
+		<!-- /Branches Panel -->
+
+		<!-- Employees Panel -->
+		<div id="Employees">
+			<p>Select an employee to edit or view.</p>
+			<div id="grdEmployees" class="jsGrid"></div>
+		</div>
+		<!-- /Employees Panel -->
+	</div>
 </body>
 </html>
