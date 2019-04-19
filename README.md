@@ -40,10 +40,7 @@ Following are the sheet names currently available in the Excel file.
 - **Configuration**. Config values for the file.
 - **TemplateObjectCollection**. The code template for creating the Entity Framework hosting Item and Colllection classes for the ViewModel layer.
 - **TemplateObjectController**. The code template for creating the Web API 2 REST controllers for the ViewModel and Web View layers.
-- **TemplateHTMLSinglePageApp**. The code template for creating the Index.html Single Page Web Application.
-```diff
-- DEP:20190419.1244 - The language for this sheet has been changed and work is currently underway to update the related macros.
-```
+- **TemplateHTMLSinglePageApp**. The code template for creating the Index.html Single Page Web Application. **DEP:20190419.1244** - The language for this sheet has been changed and work is currently underway to update the related macros.
 - **ComponentAccount**. Declaration inventory for creating Account Data, Model, ViewModel, and View objects.
 - **ComponentBranch**. Declaration inventory for creating Branch Data, Model, ViewModel, and View objects.
 - **ComponentCustomer**. Declaration inventory for creating Customer Data, Model, ViewModel, and View objects.
