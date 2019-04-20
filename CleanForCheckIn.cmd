@@ -8,11 +8,11 @@ FOR /d %%d IN ("%SOURCE%\*") DO (
 	IF EXIST "%SOURCE%\%%~nxd\%%~nxd\bin" (
 		ECHO Scrub "%SOURCE%\%%~nxd\%%~nxd\bin"
 		DEL /Q /S "%SOURCE%\%%~nxd\%%~nxd\bin\*.*"
-		RMDIR /Q /S "%SOURCE%\%%~nxd\%%~nxd\bin\*.*"
+		RMDIR /Q /S "%SOURCE%\%%~nxd\%%~nxd\bin\"
 	)
 	IF EXIST "%SOURCE%\%%~nxd\%%~nxd\obj" (
 		ECHO Scrub "%SOURCE%\%%~nxd\%%~nxd\obj"
 		DEL /Q /S "%SOURCE%\%%~nxd\%%~nxd\obj\*.*"
-		RMDIR /Q /S "%SOURCE%\%%~nxd\%%~nxd\obj\*.*"
+		RMDIR /Q /S "%SOURCE%\%%~nxd\%%~nxd\obj\"
 	)
 )

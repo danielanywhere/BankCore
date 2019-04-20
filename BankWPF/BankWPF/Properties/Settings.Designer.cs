@@ -26,8 +26,8 @@ namespace BankWPF.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=209.17.116.5;Initial Catalog=checkdashdone;Persist Security Info=True" +
-            ";User ID=cddadmin;Password=DPna0856!")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=10.10.10.10;Initial catalog=bankSQLDBName;Persist Security Info=True" +
+            ";User ID=bankSQLAdmin;Password=bankSQLPass")]
         public string bankmodelConnectionString {
             get {
                 return ((string)(this["bankmodelConnectionString"]));
