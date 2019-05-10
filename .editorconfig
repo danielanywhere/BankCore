@@ -15,7 +15,7 @@ indent_style = tab
 indent_size = 2
 trim_trailing_whitespace = true
 
-[*.{html,js}]
+[*.{html,js,json}]
 charset = utf-8
 indent_style = tab
 indent_size = 1
